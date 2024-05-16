@@ -1,0 +1,29 @@
+{
+  "name": "hardhat-chai-matchers-viem",
+  "module": "index.ts",
+  "type": "module",
+  "scripts": {
+    "compile": "NODE_OPTIONS=\"--experimental-loader ts-node/esm/transpile-only\" hardhat compile",
+    "test": "NODE_OPTIONS=\"--experimental-loader ts-node/esm/transpile-only\" hardhat test"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-network-helpers": "^1.0.10",
+    "@nomicfoundation/hardhat-viem": "^2.0.1",
+    "@types/bun": "latest",
+    "@types/chai": "^4.3.16",
+    "@types/mocha": "^10.0.6",
+    "hardhat": "^2.22.3",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.5",
+    "viem": "^2.10.2",
+    "vitest": "^1.6.0"
+  },
+  "peerDependencies": {
+    "chai": "^4.3.16",
+    "viem": "^2.10.2",
+    "hardhat": "^2.22.3"
+  },
+  "dependencies": {
+    "@vitest/expect": "^1.6.0"
+  }
+}

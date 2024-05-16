@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "Node16",
+    "moduleDetection": "force",
+    "strict": true,
+    "esModuleInterop": true,
+    "moduleResolution": "NodeNext",
+    "outDir": "build",
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true
+  },
+  "ts-node": {
+    "experimentalResolver": true,
+    "experimentalSpecifierResolution": "node",
+    "files": true
+  },
+  "include": ["./test/**/*.ts", "./src/**/*.ts", "./artifacts/**/*.d.ts"]
+}
