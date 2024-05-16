@@ -1,5 +1,5 @@
 {
-  "name": "hardhat-chai-matchers-viem",
+  "name": "@ensdomains/hardhat-chai-matchers-viem",
   "module": "index.ts",
   "type": "module",
   "version": "0.0.1",
