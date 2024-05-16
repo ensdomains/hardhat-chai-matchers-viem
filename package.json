@@ -2,6 +2,7 @@
   "name": "hardhat-chai-matchers-viem",
   "module": "index.ts",
   "type": "module",
+  "version": "0.0.1",
   "scripts": {
     "compile": "NODE_OPTIONS=\"--experimental-loader ts-node/esm/transpile-only\" hardhat compile",
     "test": "NODE_OPTIONS=\"--experimental-loader ts-node/esm/transpile-only\" hardhat test"

@@ -1,15 +1,69 @@
 # hardhat-chai-matchers-viem
 
-To install dependencies:
+## This plugin is based on the existing `@nomicfoundation/hardhat-chai-matchers`. If you are using ethers, you should use that instead.
+
+### Installation
 
 ```bash
-bun install
+bun add @ensdomains/hardhat-chai-matchers-viem
 ```
 
-To run:
+In your hardhat config:
 
-```bash
-bun run index.ts
+```typescript
+// esm
+import "@ensdomains/hardhat-chai-matchers-viem";
+// or cjs
+require("@ensdomains/hardhat-chai-matchers-viem");
 ```
 
-This project was created using `bun init` in bun v1.0.29. [Bun](https://bun.sh) is a fast all-in-one JavaScript runtime.
+### Getting started
+
+Deploy contracts with `deployContract` and pass them into `expect` to use matchers from this plugin:
+
+```typescript
+import { expect } from "chai";
+import hre from "hardhat";
+
+it("works", async () => {
+  const example = await hre.viem.deployContract("ExampleContract", []);
+  await expect(example)
+    .write("revertWithSomeCustomError")
+    .toBeRevertedWithCustomError("SomeCustomError");
+});
+```
+
+To speed up tests, you should use hardhat fixtures:
+
+```typescript
+import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
+import { expect } from "chai";
+import hre from "hardhat";
+
+async function deployExample() {
+  const example = await hre.viem.deployContract("ExampleContract", []);
+  return example;
+}
+
+it("works", async () => {
+  const example = await loadFixture(deployExample);
+  await expect(example)
+    .write("revertWithSomeCustomError")
+    .toBeRevertedWithCustomError("SomeCustomError");
+});
+```
+
+### Available matchers
+
+- `expect(contract).read(...)`
+- `expect(contract).write(...)`
+- `.toBeReverted()`
+- `.toBeRevertedWithCustomError(...)`
+  - `.withArgs(...)`
+- `.toBeRevertedWithoutReason()`
+- `.toBeRevertedWithPanic(...)`
+- `.toBeRevertedWithString(...)`
+- `.toEmitEvent(...)`
+  - `.withArgs(...)`
+- `.toEmitEventFrom(...)`
+  - `.withArgs(...)`
