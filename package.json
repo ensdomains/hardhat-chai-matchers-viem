@@ -24,6 +24,7 @@
     "build:esm": "tsc --project tsconfig.build.json --module es2022 --outDir ./dist/esm && echo > ./dist/esm/package.json '{\"type\":\"module\",\"sideEffects\":false}'",
     "build:types": "tsc --project tsconfig.build.json --module esnext --declarationDir ./dist/types --emitDeclarationOnly --declaration --declarationMap",
     "build": "bun run clean && bun run build:esm && bun run build:types",
+    "prepublish": "bun run build",
     "compile": "NODE_OPTIONS=\"--experimental-loader ts-node/esm/transpile-only\" hardhat compile",
     "test": "NODE_OPTIONS=\"--experimental-loader ts-node/esm/transpile-only\" hardhat test",
     "postinstall": "bunx patch-package"
