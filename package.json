@@ -33,7 +33,6 @@
     "@nomicfoundation/hardhat-network-helpers": "^1.0.10",
     "@nomicfoundation/hardhat-viem": "^2.0.1",
     "@types/bun": "latest",
-    "@types/chai": "^4.3.16",
     "@types/mocha": "^10.0.6",
     "hardhat": "^2.22.3",
     "ts-node": "^10.9.2",
@@ -41,7 +40,7 @@
     "viem": "^2.10.2"
   },
   "peerDependencies": {
-    "chai": "^4.3.16",
+    "chai": "^5.1.1",
     "viem": "^2.10.2",
     "hardhat": "^2.22.3"
   },

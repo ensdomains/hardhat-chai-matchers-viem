@@ -12,7 +12,7 @@ import type {
   ExtractAbiEventNames,
 } from "abitype";
 import type { ArtifactsMap } from "hardhat/types";
-import type { Abi, Hash } from "viem";
+import type { Abi, Address, Hash } from "viem";
 import type { anyValueSymbol, panicReasons } from "./constants.js";
 
 interface Constructable<T> {
@@ -67,6 +67,7 @@ interface JestAssertion<T = unknown> {
   lastReturnedWith: <E>(value: E) => void;
   toHaveNthReturnedWith: <E>(nthCall: number, value: E) => void;
   nthReturnedWith: <E>(nthCall: number, value: E) => void;
+  toEqualAddress: ExtendsOrNever<T, Address, (address: Address) => void>;
 }
 
 export type Contracts = {
@@ -235,10 +236,12 @@ type Promisify<O> = {
     : O[K];
 };
 
-interface Assertion123<T = unknown> extends JestAssertion<T> {
+interface Assertion123<T = unknown, isNegated extends boolean = false>
+  extends JestAssertion<T> {
   resolves: Promisify<Assertion123<Awaited<T> extends never ? T : Awaited<T>>>;
   rejects: Promisify<Assertion123<Awaited<T> extends never ? T : Awaited<T>>>;
   toEqual: (expected: Awaited<T> extends never ? T : Awaited<T>) => void;
+  not: isNegated extends true ? never : Assertion123<T, true>;
 }
 
 declare global {

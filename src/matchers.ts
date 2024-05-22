@@ -1,5 +1,6 @@
 import { anyValueSymbol } from "./constants.js";
 import { supportContract } from "./matchers/contract.js";
+import { supportMisc } from "./matchers/misc.js";
 import { supportReverted } from "./matchers/toBeReverted.js";
 import { supportRevertedWithCustomError } from "./matchers/toBeRevertedWithCustomError.js";
 import { supportRevertedWithPanic } from "./matchers/toBeRevertedWithPanic.js";
@@ -21,4 +22,5 @@ export const hardhatChaiMatchers = (
   supportsEmitEvent(chai.Assertion);
   supportContract(chai.Assertion);
   supportWithArgs(chai.Assertion);
+  supportMisc(chai.Assertion);
 };

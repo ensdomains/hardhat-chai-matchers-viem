@@ -32,6 +32,9 @@ const setFlag = <T>(
 export const getNegated = (assertion: Chai.AssertionStatic) =>
   getFlag<boolean, false>(assertion, "negate", false);
 
+export const getObject = (assertion: Chai.AssertionStatic) =>
+  getFlag<unknown, undefined>(assertion, "object");
+
 export const getHashOnly = (assertion: Chai.AssertionStatic) =>
   getFlag<boolean, false>(assertion, "hashOnly", false);
 export const setHashOnly = (assertion: Chai.AssertionStatic, value: boolean) =>
