@@ -32,6 +32,11 @@ const setFlag = <T>(
 export const getNegated = (assertion: Chai.AssertionStatic) =>
   getFlag<boolean, false>(assertion, "negate", false);
 
+export const getHashOnly = (assertion: Chai.AssertionStatic) =>
+  getFlag<boolean, false>(assertion, "hashOnly", false);
+export const setHashOnly = (assertion: Chai.AssertionStatic, value: boolean) =>
+  setFlag<boolean>(assertion, "hashOnly", value);
+
 export const getWriteResult = (assertion: Chai.AssertionStatic) =>
   getFlag<Promise<Hash>, undefined>(assertion, "writeResult");
 export const setWriteResult = (
@@ -65,12 +70,21 @@ export const preventAsyncMatcherChaining = (
   {
     matcherName,
     allowSelfChaining = false,
+    allowHashOnly = false,
   }: {
     matcherName: string;
     allowSelfChaining?: boolean;
+    allowHashOnly?: boolean;
   }
 ) => {
   const previousMatcherName = getPreviousMatcherName(assertion);
+  const hashOnly = getHashOnly(assertion);
+
+  if (hashOnly && !allowHashOnly)
+    throw new HardhatChaiMatchersNonChainableMatcherError(
+      matcherName,
+      "transaction(hash)"
+    );
 
   if (previousMatcherName === undefined) {
     setPreviousMatcherName(assertion, matcherName);

@@ -33,4 +33,24 @@ describe("toEmitEvent", () => {
       .toEmitEventFrom(anotherContract, "WithUintArg")
       .withArgs(1n);
   });
+  it("hash only", async () => {
+    const { events } = await loadFixture(deployEvents);
+
+    const hash = await events.write.emitUint([1n]);
+
+    await expect(events)
+      .transaction(hash)
+      .toEmitEvent("WithUintArg")
+      .withArgs(1n);
+  });
+  it("promise", async () => {
+    const { events } = await loadFixture(deployEvents);
+
+    const promise = events.write.emitUint([1n]);
+
+    await expect(events)
+      .transaction(promise)
+      .toEmitEvent("WithUintArg")
+      .withArgs(1n);
+  });
 });

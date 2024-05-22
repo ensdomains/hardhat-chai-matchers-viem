@@ -43,6 +43,7 @@ function toEmitEventWithCustomSubject(
 
   preventAsyncMatcherChaining(this, {
     matcherName,
+    allowHashOnly: true,
   });
 
   const eventSignature = toEventSelector(foundEvent);

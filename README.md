@@ -54,6 +54,7 @@ it("works", async () => {
 
 - `expect(contract).read(...)`
 - `expect(contract).write(...)`
+- `expect(contract).transaction(...)`
 - `.toBeReverted()`
 - `.toBeRevertedWithCustomError(...)`
   - `.withArgs(...)`

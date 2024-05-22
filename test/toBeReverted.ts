@@ -1,6 +1,9 @@
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { expect } from "chai";
+import { HardhatChaiMatchersNonChainableMatcherError } from "../src/errors.js";
 import "../src/index.js";
+import { TO_BE_REVERTED_MATCHER } from "../src/matchers/constants.js";
+import { WriteCallAssertion } from "../src/types.js";
 import { deployMatchers } from "./fixtures.js";
 import { expectAssertionError } from "./helpers.js";
 
@@ -178,5 +181,29 @@ describe("toBeReverted", () => {
         });
       });
     });
+  });
+  describe("promise", () => {
+    it("empty", async () => {
+      const { matchers } = await loadFixture(deployMatchers);
+      const promise = matchers.write.revertsWithoutReason();
+
+      await expect(matchers).transaction(promise).toBeReverted();
+    });
+  });
+  it("hash", async () => {
+    const { matchers } = await loadFixture(deployMatchers);
+    const hash = await matchers.write.succeeds();
+    await expect(
+      (
+        expect(matchers).transaction(hash).not as unknown as WriteCallAssertion<
+          typeof matchers
+        >
+      ).toBeReverted()
+    ).rejects.toThrowError(
+      new HardhatChaiMatchersNonChainableMatcherError(
+        TO_BE_REVERTED_MATCHER,
+        "transaction(hash)"
+      )
+    );
   });
 });

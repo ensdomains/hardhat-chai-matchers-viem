@@ -19,6 +19,7 @@ export const TO_EMIT_EVENT_MATCHER = "toEmitEvent" as const;
 export const TO_EMIT_EVENT_FROM_MATCHER = "toEmitEventFrom" as const;
 export const WRITE_MATCHER = "write" as const;
 export const READ_MATCHER = "read" as const;
+export const TRANSACTION_MATCHER = "transaction" as const;
 // export const REVERTED_WITH_MATCHER = "revertedWith";
 // export const REVERTED_WITH_CUSTOM_ERROR_MATCHER = "revertedWithCustomError";
 // export const REVERTED_WITH_PANIC_MATCHER = "revertedWithPanic";

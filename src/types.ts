@@ -12,7 +12,7 @@ import type {
   ExtractAbiEventNames,
 } from "abitype";
 import type { ArtifactsMap } from "hardhat/types";
-import type { Abi } from "viem";
+import type { Abi, Hash } from "viem";
 import type { anyValueSymbol, panicReasons } from "./constants.js";
 
 interface Constructable<T> {
@@ -103,18 +103,61 @@ interface ReadCallAssertion<
     | ((options?: any) => any),
   isNegated extends boolean = false,
   abi extends Abi | readonly unknown[] = contract["abi"]
-> extends CallAssertion<contract, isNegated, abi> {
+> extends RevertAssertion<contract, abi> {
   not: isNegated extends true
     ? never
     : ReadCallAssertion<contract, readFunction, true, abi>;
 }
 
-interface WriteCallAssertion<
+export interface WriteCallAssertion<
   contract extends AnyContract,
   isNegated extends boolean = false,
   abi extends Abi | readonly unknown[] = contract["abi"]
-> extends CallAssertion<contract, isNegated, abi> {
+> extends RevertAssertion<contract, abi>,
+    EmitEventAssertion<contract, abi> {
   not: isNegated extends true ? never : WriteCallAssertion<contract, true, abi>;
+}
+
+interface TransactionHashAssertion<
+  contract extends AnyContract,
+  isNegated extends boolean = false,
+  abi extends Abi | readonly unknown[] = contract["abi"]
+> extends EmitEventAssertion<contract, abi> {
+  not: isNegated extends true
+    ? never
+    : TransactionHashAssertion<contract, true, abi>;
+}
+
+type ToBigInt<TNumber extends number> =
+  `${TNumber}` extends `${infer V extends bigint}` ? V : never;
+
+interface RevertAssertion<
+  contract extends AnyContract,
+  abi extends Abi | readonly unknown[] = contract["abi"]
+> {
+  toBeReverted: () => Promise<void>;
+  toBeRevertedWithoutReason: () => Promise<void>;
+  toBeRevertedWithString: (expected: string | RegExp) => Promise<void>;
+  toBeRevertedWithPanic: (
+    code?: ToBigInt<keyof typeof panicReasons>
+  ) => Promise<void>;
+
+  toBeRevertedWithCustomError: <
+    errorsAbi extends Abi | readonly unknown[] = abi,
+    errorNames extends string = errorsAbi extends Abi
+      ? ExtractAbiErrorNames<errorsAbi>
+      : string
+  >(
+    errorName: errorNames
+  ) => ErrorAssertion<
+    ExtractAbiError<errorsAbi extends Abi ? errorsAbi : Abi, errorNames>
+  >;
+}
+
+interface EmitEventAssertion<
+  contract extends AnyContract,
+  abi extends Abi | readonly unknown[] = contract["abi"]
+> {
   toEmitEvent: <
     eventsAbi extends Abi | readonly unknown[] = abi,
     eventNames extends eventsAbi extends Abi
@@ -140,34 +183,6 @@ interface WriteCallAssertion<
     eventName: eventNames
   ) => EventAssertion<
     ExtractAbiEvent<eventsAbi extends Abi ? eventsAbi : Abi, eventNames>
-  >;
-}
-
-type ToBigInt<TNumber extends number> =
-  `${TNumber}` extends `${infer V extends bigint}` ? V : never;
-
-export interface CallAssertion<
-  contract extends AnyContract,
-  isNegated extends boolean = false,
-  abi extends Abi | readonly unknown[] = contract["abi"]
-> {
-  not: isNegated extends true ? never : CallAssertion<contract, true, abi>;
-  toBeReverted: () => Promise<void>;
-  toBeRevertedWithoutReason: () => Promise<void>;
-  toBeRevertedWithString: (expected: string | RegExp) => Promise<void>;
-  toBeRevertedWithPanic: (
-    code?: ToBigInt<keyof typeof panicReasons>
-  ) => Promise<void>;
-
-  toBeRevertedWithCustomError: <
-    errorsAbi extends Abi | readonly unknown[] = abi,
-    errorNames extends string = errorsAbi extends Abi
-      ? ExtractAbiErrorNames<errorsAbi>
-      : string
-  >(
-    errorName: errorNames
-  ) => ErrorAssertion<
-    ExtractAbiError<errorsAbi extends Abi ? errorsAbi : Abi, errorNames>
   >;
 }
 
@@ -201,9 +216,15 @@ type CreateWriteCallAssertion<contract extends AnyContract> = contract extends {
     ) => WriteCallAssertion<contract>
   : never;
 
+interface CreateTransactionAssertion<contract extends AnyContract> {
+  (hash: Hash): TransactionHashAssertion<contract>;
+  (transactionPromise: Promise<Hash>): WriteCallAssertion<contract>;
+}
+
 interface ExpectContract<contract extends AnyContract> {
   read: CreateReadCallAssertion<contract>;
   write: CreateWriteCallAssertion<contract>;
+  transaction: CreateTransactionAssertion<contract>;
 }
 
 type Promisify<O> = {
