@@ -1,11 +1,32 @@
 {
   "name": "@ensdomains/hardhat-chai-matchers-viem",
-  "module": "index.ts",
   "type": "module",
   "version": "0.0.1",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/types/index.d.ts",
+  "typings": "./dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/esm/index.js",
+      "default": "./dist/esm/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist/",
+    "src/",
+    "!src/**/*.test.ts",
+    "!src/test"
+  ],
   "scripts": {
+    "clean": "rm -rf ./dist",
+    "build:esm": "tsc --project tsconfig.build.json --module es2022 --outDir ./dist/esm && echo > ./dist/esm/package.json '{\"type\":\"module\",\"sideEffects\":false}'",
+    "build:types": "tsc --project tsconfig.build.json --module esnext --declarationDir ./dist/types --emitDeclarationOnly --declaration --declarationMap",
+    "build": "bun run clean && bun run build:esm && bun run build:types",
     "compile": "NODE_OPTIONS=\"--experimental-loader ts-node/esm/transpile-only\" hardhat compile",
-    "test": "NODE_OPTIONS=\"--experimental-loader ts-node/esm/transpile-only\" hardhat test"
+    "test": "NODE_OPTIONS=\"--experimental-loader ts-node/esm/transpile-only\" hardhat test",
+    "postinstall": "bunx patch-package"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-network-helpers": "^1.0.10",
@@ -16,8 +37,7 @@
     "hardhat": "^2.22.3",
     "ts-node": "^10.9.2",
     "typescript": "^5.4.5",
-    "viem": "^2.10.2",
-    "vitest": "^1.6.0"
+    "viem": "^2.10.2"
   },
   "peerDependencies": {
     "chai": "^4.3.16",
@@ -25,6 +45,6 @@
     "hardhat": "^2.22.3"
   },
   "dependencies": {
-    "@vitest/expect": "^1.6.0"
+    "@vitest/expect": "^2.0.0-beta.3"
   }
 }

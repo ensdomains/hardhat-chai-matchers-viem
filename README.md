@@ -11,10 +11,7 @@ bun add @ensdomains/hardhat-chai-matchers-viem
 In your hardhat config:
 
 ```typescript
-// esm
-import "@ensdomains/hardhat-chai-matchers-viem";
-// or cjs
-require("@ensdomains/hardhat-chai-matchers-viem");
+import("@ensdomains/hardhat-chai-matchers-viem");
 ```
 
 ### Getting started

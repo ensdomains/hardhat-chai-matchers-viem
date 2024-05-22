@@ -46,7 +46,7 @@ interface JestAssertion<T = unknown> {
   toHaveProperty: ExtendsOrNever<
     T,
     object,
-    (property: keyof T | (keyof T)[], value?: T) => void
+    <key extends keyof T>(property: key, value?: T[key]) => void
   >;
   toBeCloseTo: ExtendsOrNever<
     T,
@@ -107,7 +107,6 @@ interface ReadCallAssertion<
   not: isNegated extends true
     ? never
     : ReadCallAssertion<contract, readFunction, true, abi>;
-  toReturn: (args?: Awaited<ReturnType<readFunction>>) => Promise<void>;
 }
 
 interface WriteCallAssertion<
@@ -216,8 +215,8 @@ type Promisify<O> = {
 };
 
 interface Assertion123<T = unknown> extends JestAssertion<T> {
-  resolves: Promisify<Assertion123<T>>;
-  rejects: Promisify<Assertion123<T>>;
+  resolves: Promisify<Assertion123<Awaited<T> extends never ? T : Awaited<T>>>;
+  rejects: Promisify<Assertion123<Awaited<T> extends never ? T : Awaited<T>>>;
   toEqual: (expected: Awaited<T> extends never ? T : Awaited<T>) => void;
 }
 
