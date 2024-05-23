@@ -1,7 +1,5 @@
 import "@nomicfoundation/hardhat-viem";
 
-import type { GetContractReturnType } from "@nomicfoundation/hardhat-viem/types.js";
-
 import type {
   AbiError,
   AbiEvent,
@@ -11,7 +9,6 @@ import type {
   ExtractAbiEvent,
   ExtractAbiEventNames,
 } from "abitype";
-import type { ArtifactsMap } from "hardhat/types";
 import type { Abi, Address, Hash } from "viem";
 import type { anyValueSymbol, panicReasons } from "./constants.js";
 
@@ -70,10 +67,7 @@ interface JestAssertion<T = unknown> {
   toEqualAddress: ExtendsOrNever<T, Address, (address: Address) => void>;
 }
 
-export type Contracts = {
-  [A in keyof ArtifactsMap]: GetContractReturnType<ArtifactsMap[A]["abi"]>;
-};
-export type AnyContract = Contracts[keyof ArtifactsMap];
+export type AnyContract = { abi: Abi | unknown[]; address: Address };
 
 export type AnyValue = typeof anyValueSymbol;
 

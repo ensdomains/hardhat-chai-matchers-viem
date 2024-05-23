@@ -1,7 +1,6 @@
 import { AssertionError, expect } from "chai";
 import hre from "hardhat";
 import type { Hash } from "viem";
-import type { Contracts } from "../src/types.js";
 
 export const expectAssertionError = async (
   x: Promise<any>,
@@ -15,20 +14,6 @@ export async function mineSuccessfulTransaction() {
 
   const [signer] = await hre.viem.getWalletClients();
   const tx = await signer.sendTransaction({ to: signer.account.address });
-
-  await mineBlocksUntilTxIsIncluded(tx);
-
-  await hre.network.provider.send("evm_setAutomine", [true]);
-
-  return tx;
-}
-
-export async function mineRevertedTransaction(matchers: Contracts["Matchers"]) {
-  await hre.network.provider.send("evm_setAutomine", [false]);
-
-  const tx = await matchers.write.revertsWithoutReason({
-    gas: 1_000_000n,
-  });
 
   await mineBlocksUntilTxIsIncluded(tx);
 
