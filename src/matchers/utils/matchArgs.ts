@@ -1,6 +1,19 @@
-import { createColors } from "@vitest/utils";
-import { isatty } from "node:tty";
+import { equals } from "@vitest/expect";
 import { anyValueSymbol } from "../../constants.js";
+
+const anyValueTester = (a: unknown, b: unknown) => {
+  if (a === anyValueSymbol) return true;
+};
+
+export const withAnyValue = (
+  expectedArgs: unknown[],
+  actualArgs: readonly unknown[] | undefined
+) => {
+  if (!actualArgs) return;
+  for (let i = 0; i < expectedArgs.length; i++) {
+    if (expectedArgs[i] === anyValueSymbol) expectedArgs[i] = actualArgs[i];
+  }
+};
 
 export const matchArgs = (
   expectedArgs: unknown[],
@@ -9,34 +22,7 @@ export const matchArgs = (
   if (!actualArgs) return false;
   if (expectedArgs.length !== actualArgs.length) return false;
 
-  for (let i = 0; i < expectedArgs.length; i++) {
-    if (expectedArgs[i] === anyValueSymbol) continue;
-    if (expectedArgs[i] !== actualArgs[i]) return false;
-  }
+  const equalsResult = equals(expectedArgs, actualArgs, [anyValueTester]);
 
-  return true;
-};
-
-const stringifyValue = (value: unknown) => {
-  if (typeof value === "bigint") return `${value.toString()}n`;
-  if (value === anyValueSymbol) return "anyValue";
-  return JSON.stringify(value);
-};
-
-export const formatMatchError = ({
-  msg,
-  expected,
-  actual,
-}: {
-  msg: string;
-  expected: unknown[];
-  actual: readonly unknown[] | undefined;
-}) => {
-  const colors = createColors(isatty(1));
-
-  return `${colors.red(msg)}
-  ${colors.green("+ expected")} ${colors.red("- actual")}
-
-  ${colors.red(`- [${actual?.map(stringifyValue).join(", ")}]`)}
-  ${colors.green(`+ [${expected.map(stringifyValue).join(", ")}]`)}`;
+  return equalsResult;
 };

@@ -1,3 +1,4 @@
+import { equals } from "@vitest/expect";
 import { AbiError } from "abitype";
 import { Abi } from "viem";
 import { TO_BE_REVERTED_WITH_CUSTOM_ERROR_MATCHER } from "./constants.js";
@@ -9,7 +10,7 @@ import {
 import { buildAssert } from "./utils/buildAssert.js";
 import { getCall } from "./utils/getCallFlag.js";
 import { getReturnDataFromError } from "./utils/getReturnDataFromError.js";
-import { formatMatchError, matchArgs } from "./utils/matchArgs.js";
+import { withAnyValue } from "./utils/matchArgs.js";
 
 export function supportRevertedWithCustomError(
   Assertion: Chai.AssertionStatic
@@ -112,17 +113,17 @@ export function supportRevertedWithCustomError(
           return;
         }
 
-        const argsAreEqual = matchArgs(withArgs, returnData.args);
+        withAnyValue(withArgs, returnData.args);
+        const argsAreEqual = equals(withArgs, returnData.args);
 
-        assert({
-          condition: argsAreEqual,
-          messageFalse: formatMatchError({
-            msg: `Expected transaction to be reverted with custom error '${expectedCustomErrorName}' and matching arguments, but it was`,
-            expected: withArgs,
-            actual: returnData.args,
-          }),
-          messageTrue: `Expected transaction NOT to be reverted with custom error '${expectedCustomErrorName}' and matching arguments, but it was`,
-        });
+        this.assert(
+          argsAreEqual,
+          `Expected custom error '${expectedCustomErrorName}' to have args matching #{exp}`,
+          `Expected custom error '${expectedCustomErrorName}' NOT to have args matching #{exp}`,
+          withArgs,
+          returnData.args,
+          true
+        );
       };
 
       const derivedPromise = functionCall.promise.then(onSuccess, onError);

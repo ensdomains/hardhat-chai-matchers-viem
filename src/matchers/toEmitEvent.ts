@@ -13,7 +13,7 @@ import { buildAssert } from "./utils/buildAssert.js";
 import { getCall } from "./utils/getCallFlag.js";
 import { getTransactionReceipt } from "./utils/getTransactionReceipt.js";
 import { isValidTransactionHash } from "./utils/isValidTransactionHash.js";
-import { formatMatchError, matchArgs } from "./utils/matchArgs.js";
+import { matchArgs, withAnyValue } from "./utils/matchArgs.js";
 
 function toEmitEventWithCustomSubject(
   this: Chai.AssertionStatic,
@@ -81,16 +81,14 @@ function toEmitEventWithCustomSubject(
     const matchedLog = decodedLogs.find((log) => matchArgs(withArgs, log.args));
 
     if (decodedLogs.length === 1) {
-      assert({
-        condition: !matchedLog,
-        messageFalse: () =>
-          formatMatchError({
-            msg: `Expected event "${expectedEventName}" to be emitted with matching arguments, but it was`,
-            expected: withArgs,
-            actual: decodedLogs[0].args,
-          }),
-        messageTrue: `Expected event "${expectedEventName}" NOT to be emitted with matching arguments, but it was`,
-      });
+      withAnyValue(withArgs, decodedLogs[0].args);
+      this.assert(
+        !matchedLog,
+        `Expected event '${expectedEventName}' to have args matching #{exp}`,
+        `Expected event '${expectedEventName}' NOT to have args matching #{exp}`,
+        withArgs,
+        decodedLogs[0].args
+      );
       return;
     }
 

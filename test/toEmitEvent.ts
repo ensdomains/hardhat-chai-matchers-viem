@@ -22,7 +22,7 @@ describe("toEmitEvent", () => {
         .write("emitUint", [1n])
         .not.toEmitEvent("WithUintArg")
         .withArgs(1n),
-      'Expected event "WithUintArg" NOT to be emitted with matching arguments, but it was'
+      "Expected event 'WithUintArg' NOT to have args matching [ 1n ]"
     );
   });
   it("test 3", async () => {

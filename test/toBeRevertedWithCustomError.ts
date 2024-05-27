@@ -1,6 +1,5 @@
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
-import { createColors } from "@vitest/utils";
-import { expect } from "chai";
+import { expect, util } from "chai";
 import { deployMatchers } from "./fixtures.js";
 import { expectAssertionError } from "./helpers.js";
 
@@ -236,8 +235,13 @@ describe("toBeRevertedWithCustomError", () => {
             .toBeRevertedWithCustomError("CustomErrorWithUint")
             .withArgs(expect.anyValue);
         });
-
-        const colors = createColors(true);
+        it("matching custom error, inner array", async () => {
+          const { matchers } = await loadFixture(deployMatchers);
+          await expect(matchers)
+            .write("revertWithCustomErrorWithPair", [1n, 1n])
+            .toBeRevertedWithCustomError("CustomErrorWithPair")
+            .withArgs({ a: 1n, b: 1n });
+        });
         it("matching custom error, mismatching args", async () => {
           const { matchers } = await loadFixture(deployMatchers);
           await expectAssertionError(
@@ -245,13 +249,13 @@ describe("toBeRevertedWithCustomError", () => {
               .write("revertWithCustomErrorWithUint", [1n])
               .toBeRevertedWithCustomError("CustomErrorWithUint")
               .withArgs(2n),
-            `${colors.red(
-              "Expected transaction to be reverted with custom error 'CustomErrorWithUint' and matching arguments, but it was"
-            )}
-  ${colors.green("+ expected")} ${colors.red("- actual")}
-
-  ${colors.red("- [1n]")}
-  ${colors.green("+ [2n]")}`
+            util.getMessage({}, [
+              false,
+              `Expected custom error 'CustomErrorWithUint' to have args matching #{exp}`,
+              `Expected custom error 'CustomErrorWithUint' NOT to have args matching #{exp}`,
+              [2n],
+              [1n],
+            ])
           );
         });
         it("matching custom error, mismatching args with anyValue", async () => {
@@ -261,13 +265,13 @@ describe("toBeRevertedWithCustomError", () => {
               .write("revertWithCustomErrorWithUintAndString", [1n, "two"])
               .toBeRevertedWithCustomError("CustomErrorWithUintAndString")
               .withArgs(2n, expect.anyValue),
-            `${colors.red(
-              "Expected transaction to be reverted with custom error 'CustomErrorWithUintAndString' and matching arguments, but it was"
-            )}
-  ${colors.green("+ expected")} ${colors.red("- actual")}
-
-  ${colors.red('- [1n, "two"]')}
-  ${colors.green("+ [2n, anyValue]")}`
+            util.getMessage({}, [
+              false,
+              `Expected custom error 'CustomErrorWithUintAndString' to have args matching #{exp}`,
+              `Expected custom error 'CustomErrorWithUintAndString' NOT to have args matching #{exp}`,
+              [2n, "two"],
+              [1n, "two"],
+            ])
           );
         });
       });
