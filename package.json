@@ -1,7 +1,7 @@
 {
   "name": "@ensdomains/hardhat-chai-matchers-viem",
   "type": "module",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "module": "./dist/esm/index.js",
   "types": "./dist/types/index.d.ts",
   "typings": "./dist/types/index.d.ts",
