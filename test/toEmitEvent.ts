@@ -53,4 +53,42 @@ describe("toEmitEvent", () => {
       .toEmitEvent("WithUintArg")
       .withArgs(1n);
   });
+
+  it("two events", async () => {
+    const { events } = await loadFixture(deployEvents);
+
+    const tx = await events.write.emitUintTwice([1n, 2n]);
+
+    await expect(events)
+      .transaction(tx)
+      .toEmitEvent("WithUintArg")
+      .withArgs(1n);
+
+    await expect(events)
+      .transaction(tx)
+      .toEmitEvent("WithUintArg")
+      .withArgs(2n);
+  });
+
+  it("two events - not", async () => {
+    const { events } = await loadFixture(deployEvents);
+
+    const tx = await events.write.emitUintTwice([1n, 2n]);
+
+    await expectAssertionError(
+      expect(events)
+        .transaction(tx)
+        .not.toEmitEvent("WithUintArg")
+        .withArgs(1n),
+      "Expected event 'WithUintArg' NOT to have args matching [ 1n ]"
+    );
+
+    await expectAssertionError(
+      expect(events)
+        .transaction(tx)
+        .not.toEmitEvent("WithUintArg")
+        .withArgs(2n),
+      "Expected event 'WithUintArg' NOT to have args matching [ 2n ]"
+    );
+  });
 });

@@ -92,11 +92,12 @@ function toEmitEventWithCustomSubject(
       return;
     }
 
-    assert({
-      condition: !!matchedLog,
-      messageFalse: `Expected event "${expectedEventName}" to be emitted with matching arguments. ${decodedLogs.length} "${expectedEventName}" events were emitted, but none of them matched the specified arguments`,
-      messageTrue: `Expected event "${expectedEventName}" NOT to be emitted with matching arguments, but it was`,
-    });
+    this.assert(
+      !matchedLog,
+      `Expected event '${expectedEventName}' to have args matching #{exp}. ${decodedLogs.length} "${expectedEventName}" events were emitted, but none of them matched the specified arguments`,
+      `Expected event '${expectedEventName}' NOT to have args matching #{exp}`,
+      withArgs
+    );
     return;
   };
 
