@@ -1,4 +1,11 @@
-import { Abi, AbiEvent, Address, decodeEventLog, toEventSelector } from "viem";
+import {
+  Abi,
+  AbiEvent,
+  Address,
+  decodeEventLog,
+  getAddress,
+  toEventSelector,
+} from "viem";
 import {
   TO_EMIT_EVENT_FROM_MATCHER,
   TO_EMIT_EVENT_MATCHER,
@@ -61,9 +68,11 @@ function toEmitEventWithCustomSubject(
     const receipt = await getTransactionReceipt(value);
     assertIsNotNull(receipt, "receipt");
 
+    const checksummedAddress = getAddress(subject.address);
     const matchingLogs = receipt.logs.filter(
       (log) =>
-        log.address === subject.address && log.topics[0] === eventSignature
+        getAddress(log.address) === checksummedAddress &&
+        log.topics[0] === eventSignature
     );
 
     if (!withArgs || !matchingLogs.length) {

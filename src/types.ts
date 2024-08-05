@@ -84,10 +84,14 @@ interface ErrorAssertion<
   ) => Promise<void>;
 }
 
-interface EventAssertion<abiEvent extends AbiEvent = AbiEvent>
-  extends AsyncAssertion {
+interface EventAssertion<
+  abiEvent extends AbiEvent = AbiEvent,
+  args extends readonly unknown[] = AbiParametersToPrimitiveTypes<
+    abiEvent["inputs"]
+  >
+> extends AsyncAssertion {
   withArgs: (
-    ...args: AbiParametersToPrimitiveTypes<abiEvent["inputs"]>
+    ...args: { [arg in keyof args]: args[arg] | AnyValue }
   ) => Promise<void>;
 }
 
