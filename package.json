@@ -11,7 +11,27 @@
       "import": "./dist/esm/index.js",
       "default": "./dist/esm/index.js"
     },
+    "./behaviour": {
+      "types": "./dist/types/behaviour.d.ts",
+      "import": "./dist/esm/behaviour.js",
+      "default": "./dist/esm/behaviour.js"
+    },
+    "./utils": {
+      "types": "./dist/types/utils.d.ts",
+      "import": "./dist/esm/utils.js",
+      "default": "./dist/esm/utils.js"
+    },
     "./package.json": "./package.json"
+  },
+  "typesVersions": {
+    "*": {
+      "behaviour": [
+        "./dist/types/behaviour.d.ts"
+      ],
+      "utils": [
+        "./dist/types/utils.d.ts"
+      ]
+    }
   },
   "files": [
     "dist/",
@@ -32,6 +52,7 @@
   "devDependencies": {
     "@nomicfoundation/hardhat-network-helpers": "^1.0.10",
     "@nomicfoundation/hardhat-viem": "^2.0.1",
+    "@openzeppelin/contracts": "^5.0.2",
     "@types/bun": "latest",
     "@types/mocha": "^10.0.6",
     "hardhat": "^2.22.3",

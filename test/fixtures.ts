@@ -14,3 +14,11 @@ export async function deployEvents() {
 
   return { anotherContract, events, matchers };
 }
+
+export async function deployBehaviour() {
+  const accounts = await hre.viem
+    .getWalletClients()
+    .then((clients) => clients.map((c) => c.account));
+  const behaviour = await hre.viem.deployContract("Behaviour", []);
+  return { behaviour, accounts };
+}
