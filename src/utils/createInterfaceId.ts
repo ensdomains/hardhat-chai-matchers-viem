@@ -94,15 +94,15 @@ const matchStringFunctionToAbi = ({
  * @returns The explicitly defined ABI for the interface
  */
 export const getSolidityReferenceInterfaceAbi = async (
-  interfaceName: keyof ArtifactsMap
+  interfaceOrFullyQualifiedName: keyof ArtifactsMap
 ) => {
   const artifact = (await hre.artifacts.readArtifact(
-    interfaceName
+    interfaceOrFullyQualifiedName
   )) as Artifact;
   const fullyQualifiedNames = await hre.artifacts.getAllFullyQualifiedNames();
 
   const fullyQualifiedInterfaceName = fullyQualifiedNames.find((n) =>
-    n.endsWith(interfaceName)
+    n.endsWith(interfaceOrFullyQualifiedName)
   );
 
   if (!fullyQualifiedInterfaceName)
@@ -114,7 +114,7 @@ export const getSolidityReferenceInterfaceAbi = async (
 
   if (!buildInfo) throw new Error("Couldn't find build info for interface");
 
-  const path = fullyQualifiedInterfaceName.split(":")[0];
+  const [path, interfaceName] = fullyQualifiedInterfaceName.split(":");
   const buildMetadata = JSON.parse(
     (buildInfo.output.contracts[path][interfaceName] as any).metadata
   ) as CompilerInput;
