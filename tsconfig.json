@@ -9,12 +9,16 @@
     "outDir": "build",
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "paths": {
+      "@ensdomains/hardhat-chai-matchers-viem": ["./src/index.ts"]
+    }
   },
   "ts-node": {
     "experimentalResolver": true,
     "experimentalSpecifierResolution": "node",
     "files": true
   },
+  "files": ["hardhat.config.ts"],
   "include": ["./test/**/*.ts", "./src/**/*.ts", "./artifacts/**/*.d.ts"]
 }

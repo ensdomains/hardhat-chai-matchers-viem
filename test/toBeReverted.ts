@@ -1,11 +1,11 @@
-import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { expect } from "chai";
+import { describe, it } from "node:test";
+
 import { HardhatChaiMatchersNonChainableMatcherError } from "../src/errors.js";
-import "../src/index.js";
 import { TO_BE_REVERTED_MATCHER } from "../src/matchers/constants.js";
 import { WriteCallAssertion } from "../src/types.js";
 import { deployMatchers } from "./fixtures.js";
-import { expectAssertionError } from "./helpers.js";
+import { expectAssertionError, loadFixture } from "./helpers.js";
 
 describe("toBeReverted", () => {
   describe("write", () => {

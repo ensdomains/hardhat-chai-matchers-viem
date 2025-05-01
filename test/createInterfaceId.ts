@@ -1,10 +1,14 @@
 import { expect } from "chai";
-import type { ArtifactsMap } from "hardhat/types/artifacts.js";
-import "../src/index.js";
+import type { ArtifactMap } from "hardhat/types/artifacts";
+import { describe, it } from "node:test";
+
+import { addChaiMatchers } from "../src/internal/addChaiMatchers.js";
 import { getSolidityReferenceInterfaceAbi } from "../src/utils/createInterfaceId.js";
 
+addChaiMatchers();
+
 describe("getSolidityReferenceInterfaceAbi", () => {
-  const interfaceName = "IBehaviour" satisfies keyof ArtifactsMap;
+  const interfaceName = "IBehaviour" satisfies keyof ArtifactMap;
 
   it("should return explicitly defined functions", async () => {
     const abi = await getSolidityReferenceInterfaceAbi(interfaceName);
@@ -60,11 +64,11 @@ describe("getSolidityReferenceInterfaceAbi", () => {
   });
 
   it("should throw error for non-existent interface", async () => {
-    const nonExistentInterface = "NonExistentInterface" as keyof ArtifactsMap;
+    const nonExistentInterface = "NonExistentInterface" as keyof ArtifactMap;
     await expect(
       getSolidityReferenceInterfaceAbi(nonExistentInterface)
     ).rejects.toThrow(
-      'HH700: Artifact for contract "NonExistentInterface" not found.'
+      'HHE1000: Artifact for contract "NonExistentInterface" not found.'
     );
   });
 });

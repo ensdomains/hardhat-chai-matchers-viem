@@ -1,20 +1,25 @@
 // Based on https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v4.1.0/test/token/ERC1155/ERC1155.behaviour.js
 // Copyright (c) 2016-2020 zOS Global Limited
 
-import { GetContractReturnType } from "@nomicfoundation/hardhat-viem/types.js";
+import type { GetContractReturnType } from "@nomicfoundation/hardhat-viem/types";
 import { expect } from "chai";
 import hre from "hardhat";
-import type { ArtifactsMap } from "hardhat/types/artifacts.js";
+import type { ArtifactMap } from "hardhat/types/artifacts";
+import type {
+  ChainType,
+  DefaultChainType,
+  NetworkConnection,
+} from "hardhat/types/network";
+import { before, describe, it } from "node:test";
 import {
   encodeFunctionData,
   getAbiItem,
   toFunctionSelector,
   toFunctionSignature,
   type Abi,
-  type AbiFunction,
   type Address,
-  type Hex,
 } from "viem";
+
 import {
   createInterfaceId,
   getSolidityReferenceInterfaceAbi,
@@ -54,41 +59,40 @@ export const shouldSupportInterfaces = <
   contract,
   interfaces,
 }: {
-  contract: () => TContract | Promise<TContract>;
-  interfaces: (keyof ArtifactsMap)[];
+  contract: <TChainType extends ChainType | string = DefaultChainType>(
+    networkConnection: NetworkConnection<TChainType>
+  ) => TContract | Promise<TContract>;
+  interfaces: (keyof ArtifactMap)[];
 }) => {
   let deployedContract: TContract;
 
   before(async () => {
-    deployedContract = await contract();
+    const networkConnection = await hre.network.connect();
+    deployedContract = await contract(networkConnection);
   });
 
   describe("Contract interface", function () {
     for (const interfaceName of interfaces) {
-      describe(interfaceName, function () {
-        let interfaceAbi: AbiFunction[];
-        let interfaceId: Hex;
+      describe(interfaceName, async () => {
+        const interfaceAbi = await getSolidityReferenceInterfaceAbi(
+          interfaceName
+        );
+        const interfaceId = createInterfaceId(interfaceAbi as Abi);
 
-        before(async () => {
-          interfaceAbi = await getSolidityReferenceInterfaceAbi(interfaceName);
-          interfaceId = createInterfaceId(interfaceAbi as Abi);
-
-          for (const fn of interfaceAbi) {
-            const sig = toFunctionSignature(fn);
-            const selector = toFunctionSelector(fn);
-            this.addTest(
-              it(`implements ${sig}`, () => {
-                expect(
-                  getAbiItem({ abi: deployedContract.abi, name: selector })
-                ).not.toBeUndefined();
-              })
-            );
-          }
-        });
+        for (const fn of interfaceAbi) {
+          const sig = toFunctionSignature(fn);
+          const selector = toFunctionSelector(fn);
+          it(`implements ${sig}`, () => {
+            expect(
+              getAbiItem({ abi: deployedContract.abi, name: selector })
+            ).not.toBeUndefined();
+          });
+        }
 
         describe("ERC165's supportsInterface(bytes4)", () => {
           it("uses less than 30k gas [skip-on-coverage]", async () => {
-            const publicClient = await hre.viem.getPublicClient();
+            const networkConnection = await hre.network.connect();
+            const publicClient = await networkConnection.viem.getPublicClient();
 
             await expect(
               publicClient.estimateGas({

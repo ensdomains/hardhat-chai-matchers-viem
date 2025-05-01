@@ -1,24 +1,33 @@
 import hre from "hardhat";
 
 export async function deployMatchers() {
-  const matchers = await hre.viem.deployContract("Matchers", []);
+  const networkConnection = await hre.network.connect();
+  const matchers = await networkConnection.viem.deployContract("Matchers", []);
   return { matchers };
 }
 
 export async function deployEvents() {
-  const anotherContract = await hre.viem.deployContract("AnotherContract", []);
-  const events = await hre.viem.deployContract("Events", [
+  const networkConnection = await hre.network.connect();
+  const anotherContract = await networkConnection.viem.deployContract(
+    "AnotherContract",
+    []
+  );
+  const events = await networkConnection.viem.deployContract("Events", [
     anotherContract.address,
   ]);
-  const matchers = await hre.viem.deployContract("Matchers", []);
+  const matchers = await networkConnection.viem.deployContract("Matchers", []);
 
   return { anotherContract, events, matchers };
 }
 
 export async function deployBehaviour() {
-  const accounts = await hre.viem
+  const networkConnection = await hre.network.connect();
+  const accounts = await networkConnection.viem
     .getWalletClients()
     .then((clients) => clients.map((c) => c.account));
-  const behaviour = await hre.viem.deployContract("Behaviour", []);
+  const behaviour = await networkConnection.viem.deployContract(
+    "Behaviour",
+    []
+  );
   return { behaviour, accounts };
 }

@@ -1,7 +1,21 @@
-import { JestChaiExpect } from "@vitest/expect";
-import { use } from "chai";
-import { hardhatChaiMatchers } from "./matchers.js";
+import type { HardhatPlugin } from "hardhat/types/plugins";
+
 import "./types.js";
 
-use(JestChaiExpect);
-use(hardhatChaiMatchers);
+const hardhatChaiMatchersViemPlugin: HardhatPlugin = {
+  id: "hardhat-chai-matchers-viem",
+  hookHandlers: {
+    network: import.meta.resolve("./internal/hook-handlers/network.js"),
+  },
+  npmPackage: "@ensdomains/hardhat-chai-matchers-viem",
+  dependencies: [
+    async () => {
+      const { default: hardhatViemPlugin } = await import(
+        "@nomicfoundation/hardhat-viem"
+      );
+      return hardhatViemPlugin;
+    },
+  ],
+};
+
+export default hardhatChaiMatchersViemPlugin;

@@ -1,11 +1,14 @@
-import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
+import { describe } from "node:test";
+
 import { shouldSupportInterfaces } from "../src/behaviour/shouldSupportInterfaces.js";
 import { deployBehaviour } from "./fixtures.js";
 
 describe("Behaviour", () => {
   shouldSupportInterfaces({
-    contract: () =>
-      loadFixture(deployBehaviour).then(({ behaviour }) => behaviour),
+    contract: (networkConnection) =>
+      networkConnection.networkHelpers
+        .loadFixture(deployBehaviour)
+        .then(({ behaviour }) => behaviour),
     interfaces: ["IBehaviour", "IBehaviourOther"],
   });
 });

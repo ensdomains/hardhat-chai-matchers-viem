@@ -10,20 +10,29 @@ export const expectAssertionError = async (
 };
 
 export async function mineSuccessfulTransaction() {
-  await hre.network.provider.send("evm_setAutomine", [false]);
+  const networkConnection = await hre.network.connect();
+  const testClient = await networkConnection.viem.getTestClient();
+  await testClient.setAutomine(false);
 
-  const [signer] = await hre.viem.getWalletClients();
+  const [signer] = await networkConnection.viem.getWalletClients();
   const tx = await signer.sendTransaction({ to: signer.account.address });
 
   await mineBlocksUntilTxIsIncluded(tx);
 
-  await hre.network.provider.send("evm_setAutomine", [true]);
+  await testClient.setAutomine(true);
 
   return tx;
 }
 
+export async function loadFixture<T>(fixture: () => Promise<T>) {
+  const networkConnection = await hre.network.connect();
+  return networkConnection.networkHelpers.loadFixture(fixture);
+}
+
 async function mineBlocksUntilTxIsIncluded(txHash: Hash) {
-  const publicClient = await hre.viem.getPublicClient();
+  const networkConnection = await hre.network.connect();
+  const publicClient = await networkConnection.viem.getPublicClient();
+  const testClient = await networkConnection.viem.getTestClient();
 
   let i = 0;
 
@@ -34,7 +43,7 @@ async function mineBlocksUntilTxIsIncluded(txHash: Hash) {
       return;
     }
 
-    await hre.network.provider.send("hardhat_mine", []);
+    await testClient.mine({ blocks: 1 });
 
     i++;
     if (i > 100) {

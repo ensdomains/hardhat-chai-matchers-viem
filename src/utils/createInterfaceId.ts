@@ -1,9 +1,6 @@
+import { readJsonFile } from "@nomicfoundation/hardhat-utils/fs";
 import hre from "hardhat";
-import type {
-  Artifact,
-  ArtifactsMap,
-  CompilerInput,
-} from "hardhat/types/artifacts.js";
+import type { ArtifactMap, BuildInfo } from "hardhat/types/artifacts";
 import {
   bytesToHex,
   hexToBytes,
@@ -94,31 +91,34 @@ const matchStringFunctionToAbi = ({
  * @returns The explicitly defined ABI for the interface
  */
 export const getSolidityReferenceInterfaceAbi = async (
-  interfaceOrFullyQualifiedName: keyof ArtifactsMap
+  interfaceOrFullyQualifiedName: keyof ArtifactMap
 ) => {
-  const artifact = (await hre.artifacts.readArtifact(
+  const artifact = await hre.artifacts.readArtifact(
     interfaceOrFullyQualifiedName
-  )) as Artifact;
-  const fullyQualifiedNames = await hre.artifacts.getAllFullyQualifiedNames();
+  );
+  const fullyQualifiedNames = await hre.artifacts
+    .getAllFullyQualifiedNames()
+    .then((names) => Array.from(names));
 
   const fullyQualifiedInterfaceName = fullyQualifiedNames.find((n) =>
     n.endsWith(interfaceOrFullyQualifiedName)
   );
-
   if (!fullyQualifiedInterfaceName)
     throw new Error("Couldn't find fully qualified interface name");
 
-  const buildInfo = await hre.artifacts.getBuildInfo(
+  const buildInfoId = await hre.artifacts.getBuildInfoId(
     fullyQualifiedInterfaceName
   );
+  if (!buildInfoId) throw new Error("Couldn't find build info for interface");
 
-  if (!buildInfo) throw new Error("Couldn't find build info for interface");
+  const buildInfoPath = await hre.artifacts.getBuildInfoPath(buildInfoId);
+  if (!buildInfoPath)
+    throw new Error("Couldn't find build info path for interface");
+
+  const buildInfo = await readJsonFile<BuildInfo>(buildInfoPath);
 
   const [path, interfaceName] = fullyQualifiedInterfaceName.split(":");
-  const buildMetadata = JSON.parse(
-    (buildInfo.output.contracts[path][interfaceName] as any).metadata
-  ) as CompilerInput;
-  const { content } = buildMetadata.sources[path];
+  const { content } = buildInfo.input.sources[path];
 
   return (
     content
@@ -165,7 +165,7 @@ export const createInterfaceId = <iface extends Abi>(iface: iface) => {
   return bytesToHex(bytesId);
 };
 
-export const getInterfaceId = async (interfaceName: keyof ArtifactsMap) => {
+export const getInterfaceId = async (interfaceName: keyof ArtifactMap) => {
   const abi = await getSolidityReferenceInterfaceAbi(interfaceName);
   return createInterfaceId(abi);
 };

@@ -1,5 +1,9 @@
 import { expect } from "chai";
-import "../src/index.js";
+import { describe, it } from "node:test";
+
+import { addChaiMatchers } from "../src/internal/addChaiMatchers.js";
+
+addChaiMatchers();
 
 describe("misc", () => {
   describe("toEqualAddress", () => {

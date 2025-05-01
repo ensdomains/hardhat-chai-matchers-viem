@@ -1,7 +1,8 @@
-import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { expect } from "chai";
+import { describe, it } from "node:test";
+
 import { deployMatchers } from "./fixtures.js";
-import { expectAssertionError } from "./helpers.js";
+import { expectAssertionError, loadFixture } from "./helpers.js";
 
 describe("toBeRevertedWithPanic", () => {
   describe("write", () => {

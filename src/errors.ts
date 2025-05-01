@@ -1,4 +1,4 @@
-import { HardhatPluginError } from "hardhat/plugins.js";
+import { HardhatPluginError } from "hardhat/plugins";
 
 export class HardhatChaiMatchersError extends HardhatPluginError {
   constructor(message: string, parent?: Error) {
