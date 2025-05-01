@@ -5,7 +5,9 @@ import {
   decodeEventLog,
   getAddress,
   toEventSelector,
+  type PublicClient,
 } from "viem";
+import { getTransactionReceipt } from "viem/actions";
 import {
   TO_EMIT_EVENT_FROM_MATCHER,
   TO_EMIT_EVENT_MATCHER,
@@ -17,19 +19,18 @@ import {
 } from "./utils.js";
 import { assertIsNotNull } from "./utils/assertIsNotNull.js";
 import { buildAssert } from "./utils/buildAssert.js";
-import { getCall } from "./utils/getCallFlag.js";
-import { getTransactionReceipt } from "./utils/getTransactionReceipt.js";
+import { getCall } from "./utils/getCall.js";
 import { isValidTransactionHash } from "./utils/isValidTransactionHash.js";
 import { matchArgs, withAnyValue } from "./utils/matchArgs.js";
 
 function toEmitEventWithCustomSubject(
   this: Chai.AssertionStatic,
   {
-    subject,
+    metadata,
     expectedEventName,
     matcherName,
   }: {
-    subject: { abi: Abi; address: Address };
+    metadata: { abi: Abi; address: Address; client: PublicClient };
     expectedEventName: string;
     matcherName: string;
   }
@@ -39,7 +40,7 @@ function toEmitEventWithCustomSubject(
   if (typeof expectedEventName !== "string")
     throw new TypeError(`Expected a string, but got '${expectedEventName}'`);
 
-  const foundEvent = subject.abi.find(
+  const foundEvent = metadata.abi.find(
     (i): i is AbiEvent => i.type === "event" && i.name === expectedEventName
   );
 
@@ -65,10 +66,12 @@ function toEmitEventWithCustomSubject(
     const assert = buildAssert(!!negated, onSuccess);
     const withArgs = getWithArgs(this);
 
-    const receipt = await getTransactionReceipt(value);
+    const receipt = await getTransactionReceipt(metadata.client, {
+      hash: value,
+    });
     assertIsNotNull(receipt, "receipt");
 
-    const checksummedAddress = getAddress(subject.address);
+    const checksummedAddress = getAddress(metadata.address);
     const matchingLogs = receipt.logs.filter(
       (log) =>
         getAddress(log.address) === checksummedAddress &&
@@ -85,7 +88,7 @@ function toEmitEventWithCustomSubject(
     }
 
     const decodedLogs = matchingLogs.map((log) =>
-      decodeEventLog({ abi: subject.abi, ...log })
+      decodeEventLog({ abi: metadata.abi, ...log })
     );
     const matchedLog = decodedLogs.find((log) => matchArgs(withArgs, log.args));
 
@@ -119,7 +122,7 @@ function toEmitEventWithCustomSubject(
     });
   };
 
-  const derivedPromise = functionCall.promise.then(onSuccess, onError);
+  const derivedPromise = functionCall.then(onSuccess, onError);
 
   (this as any).then = derivedPromise.then.bind(derivedPromise);
   (this as any).catch = derivedPromise.catch.bind(derivedPromise);
@@ -131,9 +134,11 @@ export function supportsEmitEvent(Assertion: Chai.AssertionStatic) {
   Assertion.addMethod(
     TO_EMIT_EVENT_MATCHER,
     function (this: Chai.AssertionStatic, expectedEventName: string) {
-      const subject: { abi: Abi; address: Address } = this._obj;
+      const functionCall = getCall(this, TO_EMIT_EVENT_MATCHER);
+      const metadata = functionCall.__call_metadata;
+
       return toEmitEventWithCustomSubject.call(this, {
-        subject,
+        metadata,
         expectedEventName,
         matcherName: TO_EMIT_EVENT_MATCHER,
       });
@@ -157,9 +162,13 @@ export function supportsEmitEvent(Assertion: Chai.AssertionStatic) {
           "The `toEmitEventFrom` matcher can only be used with a contract"
         );
 
-      const subject = contract as { abi: Abi; address: Address };
+      const subject = contract as {
+        abi: Abi;
+        address: Address;
+        client: PublicClient;
+      };
       return toEmitEventWithCustomSubject.call(this, {
-        subject,
+        metadata: subject,
         expectedEventName,
         matcherName: TO_EMIT_EVENT_FROM_MATCHER,
       });

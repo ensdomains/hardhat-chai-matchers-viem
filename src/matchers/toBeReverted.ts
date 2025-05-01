@@ -1,11 +1,11 @@
-import { Abi } from "viem";
+import { getTransactionReceipt } from "viem/actions";
+
 import { TO_BE_REVERTED_MATCHER } from "./constants.js";
 import { getNegated, preventAsyncMatcherChaining } from "./utils.js";
 import { assertIsNotNull } from "./utils/assertIsNotNull.js";
 import { buildAssert } from "./utils/buildAssert.js";
-import { getCall } from "./utils/getCallFlag.js";
+import { getCall } from "./utils/getCall.js";
 import { getReturnDataFromError } from "./utils/getReturnDataFromError.js";
-import { getTransactionReceipt } from "./utils/getTransactionReceipt.js";
 import { isValidTransactionHash } from "./utils/isValidTransactionHash.js";
 
 export function supportReverted(Assertion: Chai.AssertionStatic) {
@@ -14,18 +14,17 @@ export function supportReverted(Assertion: Chai.AssertionStatic) {
     async function (this: Chai.AssertionStatic) {
       const negated = getNegated(this);
 
-      const subject: { abi: Abi } = this._obj;
-
       preventAsyncMatcherChaining(this, {
         matcherName: TO_BE_REVERTED_MATCHER,
       });
 
       const functionCall = getCall(this, TO_BE_REVERTED_MATCHER);
+      const metadata = functionCall.__call_metadata;
 
       const onSuccess = async (value: unknown) => {
         const assert = buildAssert(!!negated, onSuccess);
 
-        if (functionCall.kind === "read") {
+        if (metadata.kind === "read") {
           assert({
             condition: false,
             messageFalse: "Expected transaction to be reverted",
@@ -39,7 +38,9 @@ export function supportReverted(Assertion: Chai.AssertionStatic) {
             `Expected a valid transaction hash, but got '${value}'`
           );
 
-        const receipt = await getTransactionReceipt(value);
+        const receipt = await getTransactionReceipt(metadata.client, {
+          hash: value,
+        });
         assertIsNotNull(receipt, "receipt");
         assert({
           condition: receipt.status === "reverted",
@@ -50,7 +51,7 @@ export function supportReverted(Assertion: Chai.AssertionStatic) {
 
       const onError = (error: unknown) => {
         const assert = buildAssert(!!negated, onError);
-        const returnData = getReturnDataFromError(subject, error);
+        const returnData = getReturnDataFromError(metadata, error);
 
         if (returnData.kind === "unknown-local") throw error;
 
@@ -92,7 +93,7 @@ export function supportReverted(Assertion: Chai.AssertionStatic) {
         });
       };
 
-      const derivedPromise = functionCall.promise.then(onSuccess, onError);
+      const derivedPromise = functionCall.then(onSuccess, onError);
 
       (this as any).then = derivedPromise.then.bind(derivedPromise);
       (this as any).catch = derivedPromise.catch.bind(derivedPromise);

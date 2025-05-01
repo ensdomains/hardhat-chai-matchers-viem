@@ -1,6 +1,5 @@
 import { equals } from "@vitest/expect";
 import { AbiError } from "abitype";
-import { Abi } from "viem";
 import { TO_BE_REVERTED_WITH_CUSTOM_ERROR_MATCHER } from "./constants.js";
 import {
   getNegated,
@@ -8,7 +7,7 @@ import {
   preventAsyncMatcherChaining,
 } from "./utils.js";
 import { buildAssert } from "./utils/buildAssert.js";
-import { getCall } from "./utils/getCallFlag.js";
+import { getCall } from "./utils/getCall.js";
 import { getReturnDataFromError } from "./utils/getReturnDataFromError.js";
 import { withAnyValue } from "./utils/matchArgs.js";
 
@@ -20,7 +19,11 @@ export function supportRevertedWithCustomError(
     function (this: Chai.AssertionStatic, expectedCustomErrorName: string) {
       const negated = getNegated(this);
 
-      const subject: { abi: Abi } = this._obj;
+      const functionCall = getCall(
+        this,
+        TO_BE_REVERTED_WITH_CUSTOM_ERROR_MATCHER
+      );
+      const metadata = functionCall.__call_metadata;
 
       if (typeof expectedCustomErrorName !== "string")
         throw new TypeError(
@@ -28,7 +31,7 @@ export function supportRevertedWithCustomError(
         );
 
       // this doesn't work with overloaded errors
-      const foundError = subject.abi.find(
+      const foundError = metadata.abi.find(
         (i): i is AbiError =>
           i.type === "error" && i.name === expectedCustomErrorName
       );
@@ -42,11 +45,6 @@ export function supportRevertedWithCustomError(
         matcherName: TO_BE_REVERTED_WITH_CUSTOM_ERROR_MATCHER,
       });
 
-      const functionCall = getCall(
-        this,
-        TO_BE_REVERTED_WITH_CUSTOM_ERROR_MATCHER
-      );
-
       const onSuccess = async () => {
         const assert = buildAssert(!!negated, onSuccess);
 
@@ -58,7 +56,7 @@ export function supportRevertedWithCustomError(
 
       const onError = (error: unknown) => {
         const assert = buildAssert(!!negated, onError);
-        const returnData = getReturnDataFromError(subject, error);
+        const returnData = getReturnDataFromError(metadata, error);
 
         const withArgs = getWithArgs(this);
 
@@ -126,7 +124,7 @@ export function supportRevertedWithCustomError(
         );
       };
 
-      const derivedPromise = functionCall.promise.then(onSuccess, onError);
+      const derivedPromise = functionCall.then(onSuccess, onError);
 
       (this as any).then = derivedPromise.then.bind(derivedPromise);
       (this as any).catch = derivedPromise.catch.bind(derivedPromise);

@@ -1,8 +1,7 @@
-import { Abi } from "viem";
 import { TO_BE_REVERTED_WITHOUT_REASON_MATCHER } from "./constants.js";
 import { getNegated, preventAsyncMatcherChaining } from "./utils.js";
 import { buildAssert } from "./utils/buildAssert.js";
-import { getCall } from "./utils/getCallFlag.js";
+import { getCall } from "./utils/getCall.js";
 import { getReturnDataFromError } from "./utils/getReturnDataFromError.js";
 
 export function supportRevertedWithoutReason(Assertion: Chai.AssertionStatic) {
@@ -11,13 +10,12 @@ export function supportRevertedWithoutReason(Assertion: Chai.AssertionStatic) {
     async function (this: Chai.AssertionStatic) {
       const negated = getNegated(this);
 
-      const subject: { abi: Abi } = this._obj;
+      const functionCall = getCall(this, TO_BE_REVERTED_WITHOUT_REASON_MATCHER);
+      const metadata = functionCall.__call_metadata;
 
       preventAsyncMatcherChaining(this, {
         matcherName: TO_BE_REVERTED_WITHOUT_REASON_MATCHER,
       });
-
-      const functionCall = getCall(this, TO_BE_REVERTED_WITHOUT_REASON_MATCHER);
 
       const onSuccess = async () => {
         const assert = buildAssert(!!negated, onSuccess);
@@ -30,7 +28,7 @@ export function supportRevertedWithoutReason(Assertion: Chai.AssertionStatic) {
 
       const onError = (error: unknown) => {
         const assert = buildAssert(!!negated, onError);
-        const returnData = getReturnDataFromError(subject, error);
+        const returnData = getReturnDataFromError(metadata, error);
 
         if (returnData.kind === "unknown-local") throw error;
 
@@ -72,7 +70,7 @@ export function supportRevertedWithoutReason(Assertion: Chai.AssertionStatic) {
         });
       };
 
-      const derivedPromise = functionCall.promise.then(onSuccess, onError);
+      const derivedPromise = functionCall.then(onSuccess, onError);
 
       (this as any).then = derivedPromise.then.bind(derivedPromise);
       (this as any).catch = derivedPromise.catch.bind(derivedPromise);

@@ -1,6 +1,12 @@
 import "@nomicfoundation/hardhat-viem";
 
 import type {
+  ConstructorArgs,
+  ContractReturnType as ContractReturnType_,
+  DeployContractConfig,
+  HardhatViemHelpers as HardhatViemHelpers_,
+} from "@nomicfoundation/hardhat-viem/types";
+import type {
   AbiError,
   AbiEvent,
   AbiParametersToPrimitiveTypes,
@@ -9,7 +15,7 @@ import type {
   ExtractAbiEvent,
   ExtractAbiEventNames,
 } from "abitype";
-import type { Abi, Address, Hash } from "viem";
+import type { Abi, Address, PublicClient, WriteContractReturnType } from "viem";
 import type { anyValueSymbol, panicReasons } from "./constants.js";
 
 interface Constructable<T> {
@@ -96,44 +102,31 @@ interface EventAssertion<
 }
 
 interface ReadCallAssertion<
-  contract extends AnyContract,
-  readFunction extends
-    | ((args: any, options?: any) => any)
-    | ((options?: any) => any),
-  isNegated extends boolean = false,
-  abi extends Abi | readonly unknown[] = contract["abi"]
-> extends RevertAssertion<contract, abi> {
-  not: isNegated extends true
-    ? never
-    : ReadCallAssertion<contract, readFunction, true, abi>;
+  abi extends Abi | readonly unknown[],
+  isNegated extends boolean = false
+> extends RevertAssertion<abi> {
+  not: isNegated extends true ? never : ReadCallAssertion<abi, true>;
 }
 
 export interface WriteCallAssertion<
-  contract extends AnyContract,
-  isNegated extends boolean = false,
-  abi extends Abi | readonly unknown[] = contract["abi"]
-> extends RevertAssertion<contract, abi>,
-    EmitEventAssertion<contract, abi> {
-  not: isNegated extends true ? never : WriteCallAssertion<contract, true, abi>;
+  abi extends Abi | readonly unknown[],
+  isNegated extends boolean = false
+> extends RevertAssertion<abi>,
+    EmitEventAssertion<abi> {
+  not: isNegated extends true ? never : WriteCallAssertion<abi, true>;
 }
 
 interface TransactionHashAssertion<
-  contract extends AnyContract,
-  isNegated extends boolean = false,
-  abi extends Abi | readonly unknown[] = contract["abi"]
-> extends EmitEventAssertion<contract, abi> {
-  not: isNegated extends true
-    ? never
-    : TransactionHashAssertion<contract, true, abi>;
+  abi extends Abi | readonly unknown[],
+  isNegated extends boolean = false
+> extends EmitEventAssertion<abi> {
+  not: isNegated extends true ? never : TransactionHashAssertion<abi, true>;
 }
 
 type ToBigInt<TNumber extends number> =
   `${TNumber}` extends `${infer V extends bigint}` ? V : never;
 
-interface RevertAssertion<
-  contract extends AnyContract,
-  abi extends Abi | readonly unknown[] = contract["abi"]
-> {
+interface RevertAssertion<abi extends Abi | readonly unknown[]> {
   toBeReverted: () => Promise<void>;
   toBeRevertedWithoutReason: () => Promise<void>;
   toBeRevertedWithString: (expected: string | RegExp) => Promise<void>;
@@ -153,10 +146,7 @@ interface RevertAssertion<
   >;
 }
 
-interface EmitEventAssertion<
-  contract extends AnyContract,
-  abi extends Abi | readonly unknown[] = contract["abi"]
-> {
+interface EmitEventAssertion<abi extends Abi | readonly unknown[]> {
   toEmitEvent: <
     eventsAbi extends Abi | readonly unknown[] = abi,
     eventNames extends eventsAbi extends Abi
@@ -187,45 +177,6 @@ interface EmitEventAssertion<
 
 type ParametersOrNever<T> = T extends (...args: infer A) => any ? A : never;
 
-type CreateReadCallAssertion<contract extends AnyContract> = contract extends {
-  read: any;
-}
-  ? <
-      readFunction extends keyof contract["read"],
-      argsAndOptions extends ParametersOrNever<contract["read"][readFunction]>
-    >(
-      functionName: readFunction,
-      ...argsAndOptions: argsAndOptions
-    ) => contract["read"][readFunction] extends
-      | ((args: any, options?: any) => any)
-      | ((options?: any) => any)
-      ? ReadCallAssertion<contract, contract["read"][readFunction]>
-      : never
-  : never;
-
-type CreateWriteCallAssertion<contract extends AnyContract> = contract extends {
-  write: any;
-}
-  ? <
-      writeFunction extends keyof contract["write"],
-      argsAndOptions extends ParametersOrNever<contract["write"][writeFunction]>
-    >(
-      functionName: writeFunction,
-      ...argsAndOptions: argsAndOptions
-    ) => WriteCallAssertion<contract>
-  : never;
-
-interface CreateTransactionAssertion<contract extends AnyContract> {
-  (hash: Hash): TransactionHashAssertion<contract>;
-  (transactionPromise: Promise<Hash>): WriteCallAssertion<contract>;
-}
-
-interface ExpectContract<contract extends AnyContract> {
-  read: CreateReadCallAssertion<contract>;
-  write: CreateWriteCallAssertion<contract>;
-  transaction: CreateTransactionAssertion<contract>;
-}
-
 type Promisify<O> = {
   [K in keyof O]: O[K] extends (...args: infer A) => infer R
     ? O extends R
@@ -242,12 +193,156 @@ interface Assertion123<T = unknown, isNegated extends boolean = false>
   not: isNegated extends true ? never : Assertion123<T, true>;
 }
 
+export type PromiseWithCallMetadata<
+  T,
+  TFunctionName extends string,
+  TArgs extends unknown[],
+  TKind extends "write" | "read",
+  TAbi extends Abi | readonly unknown[],
+  TAddress extends Address
+> = Promise<T> & {
+  __call_metadata: {
+    functionName: TFunctionName;
+    args: TArgs;
+    client: PublicClient;
+    kind: TKind;
+    abi: TAbi;
+    address: TAddress;
+  };
+};
+
+export type UnknownCallPromise<
+  T,
+  K extends "read" | "write"
+> = PromiseWithCallMetadata<T, string, unknown[], K, Abi, Address>;
+export type UnknownReadPromise = UnknownCallPromise<unknown, "read">;
+export type UnknownWritePromise = UnknownCallPromise<unknown, "write">;
+
+type GetParametersWithNestedKey<T, K, Kn> = K extends keyof T
+  ? Kn extends keyof T[K]
+    ? T[K][Kn] extends (...args: infer A) => any
+      ? A
+      : never
+    : never
+  : never;
+type GetReturnTypeWithNestedKey<T, K, Kn> = K extends keyof T
+  ? Kn extends keyof T[K]
+    ? T[K][Kn] extends (...args: any[]) => Promise<infer R>
+      ? R
+      : never
+    : never
+  : never;
+
+type ContractReturnType<ContractName> = Omit<
+  ContractReturnType_<ContractName>,
+  "write" | "read"
+> & {
+  client: PublicClient;
+} & ("write" extends keyof ContractReturnType_<ContractName>
+    ? {
+        write: {
+          [key in keyof ContractReturnType_<ContractName>["write"]]: <
+            const TParams extends GetParametersWithNestedKey<
+              ContractReturnType_<ContractName>,
+              "write",
+              key
+            >
+          >(
+            ...parameters: TParams
+          ) => PromiseWithCallMetadata<
+            WriteContractReturnType,
+            key extends string ? key : never,
+            TParams extends [infer TFirst, ...unknown[]]
+              ? TFirst extends unknown[]
+                ? TFirst
+                : never
+              : never,
+            "write",
+            ContractReturnType_<ContractName>["abi"],
+            ContractReturnType_<ContractName>["address"]
+          >;
+        };
+      }
+    : unknown) &
+  ("read" extends keyof ContractReturnType_<ContractName>
+    ? {
+        read: {
+          [key in keyof ContractReturnType_<ContractName>["read"]]: <
+            const TParams extends GetParametersWithNestedKey<
+              ContractReturnType_<ContractName>,
+              "read",
+              key
+            >
+          >(
+            ...parameters: TParams
+          ) => PromiseWithCallMetadata<
+            GetReturnTypeWithNestedKey<
+              ContractReturnType_<ContractName>,
+              "read",
+              key
+            >,
+            key extends string ? key : never,
+            TParams extends [infer TFirst, ...unknown[]]
+              ? TFirst extends unknown[]
+                ? TFirst
+                : never
+              : never,
+            "read",
+            ContractReturnType_<ContractName>["abi"],
+            ContractReturnType_<ContractName>["address"]
+          >;
+        };
+      }
+    : unknown);
+
+declare module "hardhat/types/network" {
+  type HardhatViemHelpers<
+    ChainTypeT extends ChainType | string = DefaultChainType
+  > = Omit<HardhatViemHelpers_<ChainTypeT>, "deployContract"> & {
+    deployContract: <ContractName extends string>(
+      contractName: ContractName,
+      constructorArgs?: ConstructorArgs<ContractName>,
+      deployContractConfig?: DeployContractConfig
+    ) => Promise<ContractReturnType<ContractName>>;
+  };
+}
+
+// declare module "@nomicfoundation/hardhat-viem/types" {
+//   type ContractReturnType<ContractName extends string> = {}
+//   interface HardhatViemHelpers {
+//     deployContract: <ContractName extends string>(
+//       contractName: ContractName,
+//       constructorArgs?: ConstructorArgs<ContractName>,
+//       deployContractConfig?: DeployContractConfig,
+//     ) => Promise<ContractReturnType<ContractName>>;
+//   }
+// }
+
 declare global {
   namespace Chai {
     interface ExpectStatic {
-      <contract extends AnyContract>(
-        contract: contract
-      ): ExpectContract<contract>;
+      // <contract extends AnyContract>(
+      //   contract: contract
+      // ): ExpectContract<contract>;
+      <
+        const TResult,
+        const TFunctionName extends string,
+        const TArgs extends unknown[],
+        const TKind extends "write" | "read",
+        const TAbi extends Abi | readonly unknown[],
+        const TAddress extends Address
+      >(
+        call: PromiseWithCallMetadata<
+          TResult,
+          TFunctionName,
+          TArgs,
+          TKind,
+          TAbi,
+          TAddress
+        >
+      ): TKind extends "write"
+        ? WriteCallAssertion<TAbi>
+        : ReadCallAssertion<TAbi>;
       <T>(actual: T, message?: string): Assertion123<T>;
       anyValue: AnyValue;
     }

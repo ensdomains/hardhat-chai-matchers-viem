@@ -29,6 +29,9 @@ const setFlag = <T>(
   assertion_.__flags[flagName] = value;
 };
 
+export const setLockSsfi = (assertion: Chai.AssertionStatic, value: boolean) =>
+  setFlag<boolean>(assertion, "lockSsfi", value);
+
 export const getNegated = (assertion: Chai.AssertionStatic) =>
   getFlag<boolean, false>(assertion, "negate", false);
 

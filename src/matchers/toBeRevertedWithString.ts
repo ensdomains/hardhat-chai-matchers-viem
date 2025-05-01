@@ -1,8 +1,7 @@
-import { Abi } from "viem";
 import { TO_BE_REVERTED_WITH_STRING_MATCHER } from "./constants.js";
 import { getNegated, preventAsyncMatcherChaining } from "./utils.js";
 import { buildAssert } from "./utils/buildAssert.js";
-import { getCall } from "./utils/getCallFlag.js";
+import { getCall } from "./utils/getCall.js";
 import { getReturnDataFromError } from "./utils/getReturnDataFromError.js";
 
 export function supportRevertedWithString(Assertion: Chai.AssertionStatic) {
@@ -14,7 +13,8 @@ export function supportRevertedWithString(Assertion: Chai.AssertionStatic) {
     ) {
       const negated = getNegated(this);
 
-      const subject: { abi: Abi } = this._obj;
+      const functionCall = getCall(this, TO_BE_REVERTED_WITH_STRING_MATCHER);
+      const metadata = functionCall.__call_metadata;
 
       if (
         !(expectedReason instanceof RegExp) &&
@@ -28,7 +28,6 @@ export function supportRevertedWithString(Assertion: Chai.AssertionStatic) {
         matcherName: TO_BE_REVERTED_WITH_STRING_MATCHER,
       });
 
-      const functionCall = getCall(this, TO_BE_REVERTED_WITH_STRING_MATCHER);
       const expectedReasonString =
         expectedReason instanceof RegExp
           ? expectedReason.source
@@ -45,7 +44,7 @@ export function supportRevertedWithString(Assertion: Chai.AssertionStatic) {
 
       const onError = (error: unknown) => {
         const assert = buildAssert(!!negated, onError);
-        const returnData = getReturnDataFromError(subject, error);
+        const returnData = getReturnDataFromError(metadata, error);
 
         if (returnData.kind === "unknown-local") throw error;
 
@@ -92,7 +91,7 @@ export function supportRevertedWithString(Assertion: Chai.AssertionStatic) {
         });
       };
 
-      const derivedPromise = functionCall.promise.then(onSuccess, onError);
+      const derivedPromise = functionCall.then(onSuccess, onError);
 
       (this as any).then = derivedPromise.then.bind(derivedPromise);
       (this as any).catch = derivedPromise.catch.bind(derivedPromise);

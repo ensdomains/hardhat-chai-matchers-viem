@@ -10,8 +10,5 @@ export const TO_BE_REVERTED_WITH_STRING_MATCHER =
   "toBeRevertedWithString" as const;
 export const TO_EMIT_EVENT_MATCHER = "toEmitEvent" as const;
 export const TO_EMIT_EVENT_FROM_MATCHER = "toEmitEventFrom" as const;
-export const WRITE_MATCHER = "write" as const;
-export const READ_MATCHER = "read" as const;
-export const TRANSACTION_MATCHER = "transaction" as const;
 
 export const TO_EQUAL_ADDRESS_MATCHER = "toEqualAddress" as const;
