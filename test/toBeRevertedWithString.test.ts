@@ -2,12 +2,12 @@ import { expect } from "chai";
 import { describe, it } from "vitest";
 
 import { deployMatchers } from "./fixtures.js";
-import { expectAssertionError, loadFixture } from "./helpers.js";
+import { expectAssertionError } from "./helpers.js";
 
 describe("toBeRevertedWithString", () => {
   describe("write", () => {
     it("successful transaction", async () => {
-      const { matchers } = await loadFixture(deployMatchers);
+      const { matchers } = await deployMatchers();
       await expectAssertionError(
         expect(matchers.write.succeeds()).toBeRevertedWithString("some reason"),
         "Expected transaction to be reverted with reason 'some reason', but it didn't revert"
@@ -15,13 +15,13 @@ describe("toBeRevertedWithString", () => {
     });
     describe("reverted transaction", () => {
       it("matching string", async () => {
-        const { matchers } = await loadFixture(deployMatchers);
+        const { matchers } = await deployMatchers();
         await expect(
           matchers.write.revertsWith(["some reason"])
         ).toBeRevertedWithString("some reason");
       });
       it("mismatching string", async () => {
-        const { matchers } = await loadFixture(deployMatchers);
+        const { matchers } = await deployMatchers();
         await expectAssertionError(
           expect(
             matchers.write.revertsWith(["some reason"])
@@ -30,7 +30,7 @@ describe("toBeRevertedWithString", () => {
         );
       });
       it("empty", async () => {
-        const { matchers } = await loadFixture(deployMatchers);
+        const { matchers } = await deployMatchers();
         await expectAssertionError(
           expect(matchers.write.revertsWithoutReason()).toBeRevertedWithString(
             "some reason"
@@ -39,7 +39,7 @@ describe("toBeRevertedWithString", () => {
         );
       });
       it("unknown custom error", async () => {
-        const { matchers } = await loadFixture(deployMatchers);
+        const { matchers } = await deployMatchers();
         await expectAssertionError(
           expect(
             matchers.write.revertWithAnotherContractCustomError()
@@ -48,7 +48,7 @@ describe("toBeRevertedWithString", () => {
         );
       });
       it("panic", async () => {
-        const { matchers } = await loadFixture(deployMatchers);
+        const { matchers } = await deployMatchers();
         await expectAssertionError(
           expect(matchers.write.panicAssert()).toBeRevertedWithString(
             "some reason"
@@ -57,7 +57,7 @@ describe("toBeRevertedWithString", () => {
         );
       });
       it("known custom error", async () => {
-        const { matchers } = await loadFixture(deployMatchers);
+        const { matchers } = await deployMatchers();
         await expectAssertionError(
           expect(
             matchers.write.revertWithSomeCustomError()
@@ -68,14 +68,14 @@ describe("toBeRevertedWithString", () => {
     });
     describe("negated", () => {
       it("successful transaction", async () => {
-        const { matchers } = await loadFixture(deployMatchers);
+        const { matchers } = await deployMatchers();
         await expect(matchers.write.succeeds()).not.toBeRevertedWithString(
           "some reason"
         );
       });
       describe("reverted transaction", () => {
         it("matching string", async () => {
-          const { matchers } = await loadFixture(deployMatchers);
+          const { matchers } = await deployMatchers();
           await expectAssertionError(
             expect(
               matchers.write.revertsWith(["some reason"])
@@ -84,31 +84,31 @@ describe("toBeRevertedWithString", () => {
           );
         });
         it("mismatching string", async () => {
-          const { matchers } = await loadFixture(deployMatchers);
+          const { matchers } = await deployMatchers();
           await expect(
             matchers.write.revertsWith(["some reason"])
           ).not.toBeRevertedWithString("another reason");
         });
         it("empty", async () => {
-          const { matchers } = await loadFixture(deployMatchers);
+          const { matchers } = await deployMatchers();
           await expect(
             matchers.write.revertsWithoutReason()
           ).not.toBeRevertedWithString("some reason");
         });
         it("unknown custom error", async () => {
-          const { matchers } = await loadFixture(deployMatchers);
+          const { matchers } = await deployMatchers();
           await expect(
             matchers.write.revertWithAnotherContractCustomError()
           ).not.toBeRevertedWithString("some reason");
         });
         it("panic", async () => {
-          const { matchers } = await loadFixture(deployMatchers);
+          const { matchers } = await deployMatchers();
           await expect(matchers.write.panicAssert()).not.toBeRevertedWithString(
             "some reason"
           );
         });
         it("known custom error", async () => {
-          const { matchers } = await loadFixture(deployMatchers);
+          const { matchers } = await deployMatchers();
           await expect(
             matchers.write.revertWithSomeCustomError()
           ).not.toBeRevertedWithString("some reason");
@@ -118,7 +118,7 @@ describe("toBeRevertedWithString", () => {
   });
   describe("read", () => {
     it("successful transaction", async () => {
-      const { matchers } = await loadFixture(deployMatchers);
+      const { matchers } = await deployMatchers();
       await expectAssertionError(
         expect(matchers.read.succeedsView()).toBeRevertedWithString(
           "some reason"
@@ -128,13 +128,13 @@ describe("toBeRevertedWithString", () => {
     });
     describe("reverted transaction", async () => {
       it("matching string", async () => {
-        const { matchers } = await loadFixture(deployMatchers);
+        const { matchers } = await deployMatchers();
         await expect(
           matchers.read.revertsWithView(["some reason"])
         ).toBeRevertedWithString("some reason");
       });
       it("mismatching string", async () => {
-        const { matchers } = await loadFixture(deployMatchers);
+        const { matchers } = await deployMatchers();
         await expectAssertionError(
           expect(
             matchers.read.revertsWithView(["some reason"])
@@ -143,7 +143,7 @@ describe("toBeRevertedWithString", () => {
         );
       });
       it("empty", async () => {
-        const { matchers } = await loadFixture(deployMatchers);
+        const { matchers } = await deployMatchers();
         await expectAssertionError(
           expect(
             matchers.read.revertsWithoutReasonView()
@@ -152,7 +152,7 @@ describe("toBeRevertedWithString", () => {
         );
       });
       it("unknown custom error", async () => {
-        const { matchers } = await loadFixture(deployMatchers);
+        const { matchers } = await deployMatchers();
         await expectAssertionError(
           expect(
             matchers.read.revertWithAnotherContractCustomErrorView()
@@ -161,7 +161,7 @@ describe("toBeRevertedWithString", () => {
         );
       });
       it("panic", async () => {
-        const { matchers } = await loadFixture(deployMatchers);
+        const { matchers } = await deployMatchers();
         await expectAssertionError(
           expect(matchers.read.panicAssertView()).toBeRevertedWithString(
             "some reason"
@@ -170,7 +170,7 @@ describe("toBeRevertedWithString", () => {
         );
       });
       it("known custom error", async () => {
-        const { matchers } = await loadFixture(deployMatchers);
+        const { matchers } = await deployMatchers();
         await expectAssertionError(
           expect(
             matchers.read.revertWithSomeCustomErrorView()
@@ -181,14 +181,14 @@ describe("toBeRevertedWithString", () => {
     });
     describe("negated", () => {
       it("successful transaction", async () => {
-        const { matchers } = await loadFixture(deployMatchers);
+        const { matchers } = await deployMatchers();
         await expect(matchers.read.succeedsView()).not.toBeRevertedWithString(
           "some reason"
         );
       });
       describe("reverted transaction", () => {
         it("matching string", async () => {
-          const { matchers } = await loadFixture(deployMatchers);
+          const { matchers } = await deployMatchers();
           await expectAssertionError(
             expect(
               matchers.read.revertsWithView(["some reason"])
@@ -197,31 +197,31 @@ describe("toBeRevertedWithString", () => {
           );
         });
         it("mismatching string", async () => {
-          const { matchers } = await loadFixture(deployMatchers);
+          const { matchers } = await deployMatchers();
           await expect(
             matchers.read.revertsWithView(["some reason"])
           ).not.toBeRevertedWithString("another reason");
         });
         it("empty", async () => {
-          const { matchers } = await loadFixture(deployMatchers);
+          const { matchers } = await deployMatchers();
           await expect(
             matchers.read.revertsWithoutReasonView()
           ).not.toBeRevertedWithString("some reason");
         });
         it("unknown custom error", async () => {
-          const { matchers } = await loadFixture(deployMatchers);
+          const { matchers } = await deployMatchers();
           await expect(
             matchers.read.revertWithAnotherContractCustomErrorView()
           ).not.toBeRevertedWithString("some reason");
         });
         it("panic", async () => {
-          const { matchers } = await loadFixture(deployMatchers);
+          const { matchers } = await deployMatchers();
           await expect(
             matchers.read.panicAssertView()
           ).not.toBeRevertedWithString("some reason");
         });
         it("known custom error", async () => {
-          const { matchers } = await loadFixture(deployMatchers);
+          const { matchers } = await deployMatchers();
           await expect(
             matchers.read.revertWithSomeCustomErrorView()
           ).not.toBeRevertedWithString("some reason");

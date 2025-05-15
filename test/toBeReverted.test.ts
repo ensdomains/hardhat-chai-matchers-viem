@@ -2,12 +2,12 @@ import { expect } from "chai";
 import { describe, it } from "vitest";
 
 import { deployMatchers } from "./fixtures.js";
-import { expectAssertionError, loadFixture } from "./helpers.js";
+import { expectAssertionError } from "./helpers.js";
 
 describe("toBeReverted", () => {
   describe("write", () => {
     it("successful transaction", async () => {
-      const { matchers } = await loadFixture(deployMatchers);
+      const { matchers } = await deployMatchers();
       await expectAssertionError(
         expect(matchers.write.succeeds()).toBeReverted(),
         "Expected transaction to be reverted"
@@ -15,45 +15,45 @@ describe("toBeReverted", () => {
     });
     describe("reverted transaction", () => {
       it("empty", async () => {
-        const { matchers } = await loadFixture(deployMatchers);
+        const { matchers } = await deployMatchers();
         await expect(matchers.write.revertsWithoutReason()).toBeReverted();
       });
       it("unknown custom error", async () => {
-        const { matchers } = await loadFixture(deployMatchers);
+        const { matchers } = await deployMatchers();
         await expect(
           matchers.write.revertWithAnotherContractCustomError()
         ).toBeReverted();
       });
       it("panic", async () => {
-        const { matchers } = await loadFixture(deployMatchers);
+        const { matchers } = await deployMatchers();
         await expect(matchers.write.panicAssert()).toBeReverted();
       });
       it("string error", async () => {
-        const { matchers } = await loadFixture(deployMatchers);
+        const { matchers } = await deployMatchers();
         await expect(
           matchers.write.revertsWith(["some reason"])
         ).toBeReverted();
       });
       it("known custom error", async () => {
-        const { matchers } = await loadFixture(deployMatchers);
+        const { matchers } = await deployMatchers();
         await expect(matchers.write.revertWithSomeCustomError()).toBeReverted();
       });
     });
     describe("negated", () => {
       it("successful transaction", async () => {
-        const { matchers } = await loadFixture(deployMatchers);
+        const { matchers } = await deployMatchers();
         await expect(matchers.write.succeeds()).not.toBeReverted();
       });
       describe("reverted transaction", () => {
         it("empty", async () => {
-          const { matchers } = await loadFixture(deployMatchers);
+          const { matchers } = await deployMatchers();
           await expectAssertionError(
             expect(matchers.write.revertsWithoutReason()).not.toBeReverted(),
             "Expected transaction NOT to be reverted"
           );
         });
         it("unknown custom error", async () => {
-          const { matchers } = await loadFixture(deployMatchers);
+          const { matchers } = await deployMatchers();
           await expectAssertionError(
             expect(
               matchers.write.revertWithAnotherContractCustomError()
@@ -62,14 +62,14 @@ describe("toBeReverted", () => {
           );
         });
         it("panic", async () => {
-          const { matchers } = await loadFixture(deployMatchers);
+          const { matchers } = await deployMatchers();
           await expectAssertionError(
             expect(matchers.write.panicAssert()).not.toBeReverted(),
             "Expected transaction NOT to be reverted, but it reverted with panic code 1 (An `assert` condition failed)"
           );
         });
         it("string error", async () => {
-          const { matchers } = await loadFixture(deployMatchers);
+          const { matchers } = await deployMatchers();
           await expectAssertionError(
             expect(
               matchers.write.revertsWith(["some reason"])
@@ -78,7 +78,7 @@ describe("toBeReverted", () => {
           );
         });
         it("known custom error", async () => {
-          const { matchers } = await loadFixture(deployMatchers);
+          const { matchers } = await deployMatchers();
           await expectAssertionError(
             expect(
               matchers.write.revertWithSomeCustomError()
@@ -91,7 +91,7 @@ describe("toBeReverted", () => {
   });
   describe("read", () => {
     it("successful transaction", async () => {
-      const { matchers } = await loadFixture(deployMatchers);
+      const { matchers } = await deployMatchers();
       await expectAssertionError(
         expect(matchers.read.succeedsView()).toBeReverted(),
         "Expected transaction to be reverted"
@@ -99,27 +99,27 @@ describe("toBeReverted", () => {
     });
     describe("reverted transaction", () => {
       it("empty", async () => {
-        const { matchers } = await loadFixture(deployMatchers);
+        const { matchers } = await deployMatchers();
         await expect(matchers.read.revertsWithoutReasonView()).toBeReverted();
       });
       it("unknown custom error", async () => {
-        const { matchers } = await loadFixture(deployMatchers);
+        const { matchers } = await deployMatchers();
         await expect(
           matchers.read.revertWithAnotherContractCustomErrorView()
         ).toBeReverted();
       });
       it("panic", async () => {
-        const { matchers } = await loadFixture(deployMatchers);
+        const { matchers } = await deployMatchers();
         await expect(matchers.read.panicAssertView()).toBeReverted();
       });
       it("string error", async () => {
-        const { matchers } = await loadFixture(deployMatchers);
+        const { matchers } = await deployMatchers();
         await expect(
           matchers.read.revertsWithView(["some reason"])
         ).toBeReverted();
       });
       it("known custom error", async () => {
-        const { matchers } = await loadFixture(deployMatchers);
+        const { matchers } = await deployMatchers();
         await expect(
           matchers.read.revertWithSomeCustomErrorView()
         ).toBeReverted();
@@ -127,19 +127,19 @@ describe("toBeReverted", () => {
     });
     describe("negated", () => {
       it("successful transaction", async () => {
-        const { matchers } = await loadFixture(deployMatchers);
+        const { matchers } = await deployMatchers();
         await expect(matchers.read.succeedsView()).not.toBeReverted();
       });
       describe("reverted transaction", () => {
         it("empty", async () => {
-          const { matchers } = await loadFixture(deployMatchers);
+          const { matchers } = await deployMatchers();
           await expectAssertionError(
             expect(matchers.read.revertsWithoutReasonView()).not.toBeReverted(),
             "Expected transaction NOT to be reverted"
           );
         });
         it("unknown custom error", async () => {
-          const { matchers } = await loadFixture(deployMatchers);
+          const { matchers } = await deployMatchers();
           await expectAssertionError(
             expect(
               matchers.read.revertWithAnotherContractCustomErrorView()
@@ -148,14 +148,14 @@ describe("toBeReverted", () => {
           );
         });
         it("panic", async () => {
-          const { matchers } = await loadFixture(deployMatchers);
+          const { matchers } = await deployMatchers();
           await expectAssertionError(
             expect(matchers.read.panicAssertView()).not.toBeReverted(),
             "Expected transaction NOT to be reverted, but it reverted with panic code 1 (An `assert` condition failed)"
           );
         });
         it("string error", async () => {
-          const { matchers } = await loadFixture(deployMatchers);
+          const { matchers } = await deployMatchers();
           await expectAssertionError(
             expect(
               matchers.read.revertsWithView(["some reason"])
@@ -164,7 +164,7 @@ describe("toBeReverted", () => {
           );
         });
         it("known custom error", async () => {
-          const { matchers } = await loadFixture(deployMatchers);
+          const { matchers } = await deployMatchers();
           await expectAssertionError(
             expect(
               matchers.read.revertWithSomeCustomErrorView()

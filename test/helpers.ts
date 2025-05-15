@@ -24,11 +24,6 @@ export async function mineSuccessfulTransaction() {
   return tx;
 }
 
-export async function loadFixture<T>(fixture: () => Promise<T>) {
-  const networkConnection = await hre.network.connect();
-  return networkConnection.networkHelpers.loadFixture(fixture);
-}
-
 async function mineBlocksUntilTxIsIncluded(txHash: Hash) {
   const networkConnection = await hre.network.connect();
   const publicClient = await networkConnection.viem.getPublicClient();

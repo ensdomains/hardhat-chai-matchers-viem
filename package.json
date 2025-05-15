@@ -1,7 +1,7 @@
 {
   "name": "@ensdomains/hardhat-chai-matchers-viem",
   "type": "module",
-  "version": "0.0.10",
+  "version": "0.1.0",
   "module": "./dist/esm/index.js",
   "types": "./dist/types/index.d.ts",
   "typings": "./dist/types/index.d.ts",
@@ -46,7 +46,7 @@
     "build": "bun run clean && bun run build:esm && bun run build:types",
     "prepublish": "bun run build",
     "compile": "hardhat compile",
-    "test": "vitest"
+    "test": "NODE_OPTIONS=\"--disable-warning=ExperimentalWarning\" vitest"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-network-helpers": "next",

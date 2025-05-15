@@ -22,9 +22,15 @@ export default async (): Promise<Partial<NetworkHooks>> => {
 
       const publicClient = await connection.viem.getPublicClient();
       const originalDeployContract = connection.viem.deployContract;
+      const originalGetContractAt = connection.viem.getContractAt;
 
-      connection.viem.deployContract = async (...args) => {
-        const result = await originalDeployContract(...args);
+      const createFunctionProxy = async (
+        originalFunction: (
+          ...args: any[]
+        ) => ReturnType<typeof originalDeployContract>,
+        ...args: any[]
+      ) => {
+        const result = await originalFunction(...args);
         const createMetadataProxy = (
           original: unknown,
           kind: "write" | "read"
@@ -63,6 +69,11 @@ export default async (): Promise<Partial<NetworkHooks>> => {
 
         return result;
       };
+
+      connection.viem.deployContract = async (...args) =>
+        createFunctionProxy(originalDeployContract, ...args);
+      connection.viem.getContractAt = async (...args) =>
+        createFunctionProxy(originalGetContractAt, ...args);
 
       return connection;
     },

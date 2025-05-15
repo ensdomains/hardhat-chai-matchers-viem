@@ -17,5 +17,6 @@
     "files": true
   },
   "files": ["hardhat.config.ts"],
-  "include": ["./test/**/*.ts", "./src/**/*.ts", "./artifacts/**/*.d.ts"]
+  "include": ["./test/**/*.ts", "./src/**/*.ts", "./artifacts/**/*.d.ts"],
+  "exclude": ["dist"]
 }

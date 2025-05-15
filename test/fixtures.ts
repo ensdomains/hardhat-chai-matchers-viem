@@ -3,7 +3,7 @@ import hre from "hardhat";
 export async function deployMatchers() {
   const networkConnection = await hre.network.connect();
   const matchers = await networkConnection.viem.deployContract("Matchers", []);
-  return { matchers };
+  return { matchers, networkConnection };
 }
 
 export async function deployEvents() {
@@ -17,7 +17,7 @@ export async function deployEvents() {
   ]);
   const matchers = await networkConnection.viem.deployContract("Matchers", []);
 
-  return { anotherContract, events, matchers };
+  return { anotherContract, events, matchers, networkConnection };
 }
 
 export async function deployBehaviour() {
@@ -29,5 +29,5 @@ export async function deployBehaviour() {
     "Behaviour",
     []
   );
-  return { behaviour, accounts };
+  return { behaviour, accounts, networkConnection };
 }

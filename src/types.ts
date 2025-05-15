@@ -4,6 +4,7 @@ import type {
   ConstructorArgs,
   ContractReturnType as ContractReturnType_,
   DeployContractConfig,
+  GetContractAtConfig,
   HardhatViemHelpers as HardhatViemHelpers_,
 } from "@nomicfoundation/hardhat-viem/types";
 import type {
@@ -302,32 +303,26 @@ type ContractReturnType<ContractName> = Omit<
 declare module "hardhat/types/network" {
   type HardhatViemHelpers<
     ChainTypeT extends ChainType | string = DefaultChainType
-  > = Omit<HardhatViemHelpers_<ChainTypeT>, "deployContract"> & {
+  > = Omit<
+    HardhatViemHelpers_<ChainTypeT>,
+    "deployContract" | "getContractAt"
+  > & {
     deployContract: <ContractName extends string>(
       contractName: ContractName,
       constructorArgs?: ConstructorArgs<ContractName>,
       deployContractConfig?: DeployContractConfig
     ) => Promise<ContractReturnType<ContractName>>;
+    getContractAt: <ContractName extends string>(
+      contractName: ContractName,
+      address: Address,
+      getContractAtConfig?: GetContractAtConfig
+    ) => Promise<ContractReturnType<ContractName>>;
   };
 }
-
-// declare module "@nomicfoundation/hardhat-viem/types" {
-//   type ContractReturnType<ContractName extends string> = {}
-//   interface HardhatViemHelpers {
-//     deployContract: <ContractName extends string>(
-//       contractName: ContractName,
-//       constructorArgs?: ConstructorArgs<ContractName>,
-//       deployContractConfig?: DeployContractConfig,
-//     ) => Promise<ContractReturnType<ContractName>>;
-//   }
-// }
 
 declare global {
   namespace Chai {
     interface ExpectStatic {
-      // <contract extends AnyContract>(
-      //   contract: contract
-      // ): ExpectContract<contract>;
       <
         const TResult,
         const TFunctionName extends string,

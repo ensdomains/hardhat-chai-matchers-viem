@@ -2,21 +2,21 @@ import { expect } from "chai";
 import { describe, it } from "vitest";
 
 import { deployEvents } from "./fixtures.js";
-import { expectAssertionError, loadFixture } from "./helpers.js";
+import { expectAssertionError } from "./helpers.js";
 
 describe("toEmitEvent", () => {
   it("test 1", async () => {
-    const { events } = await loadFixture(deployEvents);
+    const { events } = await deployEvents();
     await expect(events.write.emitUint([1n])).toEmitEvent("WithUintArg");
   });
   it("test 2", async () => {
-    const { events } = await loadFixture(deployEvents);
+    const { events } = await deployEvents();
     await expect(events.write.emitUint([1n]))
       .toEmitEvent("WithUintArg")
       .withArgs(1n);
   });
   it("test 2 - not", async () => {
-    const { events } = await loadFixture(deployEvents);
+    const { events } = await deployEvents();
     await expectAssertionError(
       expect(events.write.emitUint([1n]))
         .not.toEmitEvent("WithUintArg")
@@ -25,21 +25,21 @@ describe("toEmitEvent", () => {
     );
   });
   it("test 3", async () => {
-    const { events, anotherContract } = await loadFixture(deployEvents);
+    const { events, anotherContract } = await deployEvents();
 
     await expect(events.write.emitNestedUintFromAnotherContract([1n]))
       .toEmitEventFrom(anotherContract, "WithUintArg")
       .withArgs(1n);
   });
   // it("hash only", async () => {
-  //   const { events } = await loadFixture(deployEvents);
+  //   const { events } = await deployEvents();
 
   //   const hash = await events.write.emitUint([1n]);
 
   //   await expect(hash).toEmitEvent("WithUintArg").withArgs(1n);
   // });
   it("promise", async () => {
-    const { events } = await loadFixture(deployEvents);
+    const { events } = await deployEvents();
 
     const promise = events.write.emitUint([1n]);
 
@@ -47,7 +47,7 @@ describe("toEmitEvent", () => {
   });
 
   it("two events", async () => {
-    const { events } = await loadFixture(deployEvents);
+    const { events } = await deployEvents();
 
     const tx = events.write.emitUintTwice([1n, 2n]);
 
@@ -57,7 +57,7 @@ describe("toEmitEvent", () => {
   });
 
   it("two events - not", async () => {
-    const { events } = await loadFixture(deployEvents);
+    const { events } = await deployEvents();
 
     const tx = events.write.emitUintTwice([1n, 2n]);
 
