@@ -1,9 +1,9 @@
 import type { HardhatUserConfig } from "hardhat/config";
 
+import hardhatChaiMatchersViemPlugin from "@ensdomains/hardhat-chai-matchers-viem";
 import networkHelpersPlugin from "@nomicfoundation/hardhat-network-helpers";
 import nodeTestPlugin from "@nomicfoundation/hardhat-node-test-runner";
 import hardhatViemPlugin from "@nomicfoundation/hardhat-viem";
-import hardhatChaiMatchersViemPlugin from "./src/index.js";
 
 const config = {
   solidity: {

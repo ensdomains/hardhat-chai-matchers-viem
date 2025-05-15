@@ -2,8 +2,10 @@
   "extends": "./tsconfig.json",
   "include": ["./src"],
   "compilerOptions": {
-    "moduleResolution": "node",
+    "module": "NodeNext",
+    "moduleResolution": "nodenext",
     "sourceMap": true,
     "rootDir": "./src"
-  }
+  },
+  "files": []
 }

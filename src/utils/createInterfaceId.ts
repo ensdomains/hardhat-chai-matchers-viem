@@ -143,6 +143,7 @@ export const getSolidityReferenceInterfaceAbi = async (
       // Match the function signature string to the exact ABI function
       .map((fnString) =>
         matchStringFunctionToAbi({
+          // @ts-ignore
           artifactAbi: artifact.abi as Abi,
           fnString,
         })

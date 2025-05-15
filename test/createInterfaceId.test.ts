@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import type { ArtifactMap } from "hardhat/types/artifacts";
-import { describe, it } from "node:test";
+import { describe, it } from "vitest";
 
 import { addChaiMatchers } from "../src/internal/addChaiMatchers.js";
 import { getSolidityReferenceInterfaceAbi } from "../src/utils/createInterfaceId.js";

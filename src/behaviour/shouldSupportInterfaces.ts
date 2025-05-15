@@ -10,7 +10,6 @@ import type {
   DefaultChainType,
   NetworkConnection,
 } from "hardhat/types/network";
-import { before, describe, it } from "node:test";
 import {
   encodeFunctionData,
   getAbiItem,
@@ -19,6 +18,7 @@ import {
   type Abi,
   type Address,
 } from "viem";
+import { beforeAll, describe, it } from "vitest";
 
 import {
   createInterfaceId,
@@ -66,7 +66,7 @@ export const shouldSupportInterfaces = <
 }) => {
   let deployedContract: TContract;
 
-  before(async () => {
+  beforeAll(async () => {
     const networkConnection = await hre.network.connect();
     deployedContract = await contract(networkConnection);
   });

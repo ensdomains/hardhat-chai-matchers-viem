@@ -1,4 +1,4 @@
-import { describe } from "node:test";
+import { describe } from "vitest";
 
 import { shouldSupportInterfaces } from "../src/behaviour/shouldSupportInterfaces.js";
 import { deployBehaviour } from "./fixtures.js";

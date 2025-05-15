@@ -185,12 +185,16 @@ type Promisify<O> = {
     : O[K];
 };
 
-interface Assertion123<T = unknown, isNegated extends boolean = false>
+interface GenericAssertion<T = unknown, isNegated extends boolean = false>
   extends JestAssertion<T> {
-  resolves: Promisify<Assertion123<Awaited<T> extends never ? T : Awaited<T>>>;
-  rejects: Promisify<Assertion123<Awaited<T> extends never ? T : Awaited<T>>>;
+  resolves: Promisify<
+    GenericAssertion<Awaited<T> extends never ? T : Awaited<T>>
+  >;
+  rejects: Promisify<
+    GenericAssertion<Awaited<T> extends never ? T : Awaited<T>>
+  >;
   toEqual: (expected: Awaited<T> extends never ? T : Awaited<T>) => void;
-  not: isNegated extends true ? never : Assertion123<T, true>;
+  not: isNegated extends true ? never : GenericAssertion<T, true>;
 }
 
 export type PromiseWithCallMetadata<
@@ -340,10 +344,20 @@ declare global {
           TAbi,
           TAddress
         >
-      ): TKind extends "write"
+      ): (TKind extends "write"
         ? WriteCallAssertion<TAbi>
-        : ReadCallAssertion<TAbi>;
-      <T>(actual: T, message?: string): Assertion123<T>;
+        : ReadCallAssertion<TAbi>) &
+        GenericAssertion<
+          PromiseWithCallMetadata<
+            TResult,
+            TFunctionName,
+            TArgs,
+            TKind,
+            TAbi,
+            TAddress
+          >
+        >;
+      <T>(actual: T, message?: string): GenericAssertion<T>;
       anyValue: AnyValue;
     }
   }

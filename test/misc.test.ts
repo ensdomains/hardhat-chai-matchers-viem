@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { describe, it } from "node:test";
+import { describe, it } from "vitest";
 
 import { addChaiMatchers } from "../src/internal/addChaiMatchers.js";
 
