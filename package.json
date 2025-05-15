@@ -46,7 +46,7 @@
     "build": "bun run clean && bun run build:esm && bun run build:types",
     "prepublish": "bun run build",
     "compile": "hardhat compile",
-    "test": "hardhat test node"
+    "test": "vitest"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-network-helpers": "next",
