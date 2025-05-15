@@ -1,13 +1,20 @@
 import { expect, util } from "chai";
+import hre from "hardhat";
 import { describe, it } from "vitest";
 
-import { deployMatchers } from "./fixtures.js";
-import { expectAssertionError } from "./helpers.js";
+import { createDeployMatchersFixture } from "./fixtures.js";
+import { createFixture, expectAssertionError } from "./helpers.js";
+
+const networkConnection = await hre.network.connect();
+const loadMatchersFixture = createFixture(
+  networkConnection,
+  createDeployMatchersFixture
+);
 
 describe("toBeRevertedWithCustomError", () => {
   describe("write", () => {
     it("successful transaction", async () => {
-      const { matchers } = await deployMatchers();
+      const { matchers } = await loadMatchersFixture();
       await expectAssertionError(
         expect(matchers.write.succeeds()).toBeRevertedWithCustomError(
           "SomeCustomError"
@@ -17,13 +24,13 @@ describe("toBeRevertedWithCustomError", () => {
     });
     describe("reverted transaction", () => {
       it("matching custom error", async () => {
-        const { matchers } = await deployMatchers();
+        const { matchers } = await loadMatchersFixture();
         await expect(
           matchers.write.revertWithSomeCustomError()
         ).toBeRevertedWithCustomError("SomeCustomError");
       });
       it("mismatching custom error", async () => {
-        const { matchers } = await deployMatchers();
+        const { matchers } = await loadMatchersFixture();
         await expectAssertionError(
           expect(
             matchers.write.revertWithSomeCustomError()
@@ -32,7 +39,7 @@ describe("toBeRevertedWithCustomError", () => {
         );
       });
       it("empty", async () => {
-        const { matchers } = await deployMatchers();
+        const { matchers } = await loadMatchersFixture();
         await expectAssertionError(
           expect(
             matchers.write.revertsWithoutReason()
@@ -41,7 +48,7 @@ describe("toBeRevertedWithCustomError", () => {
         );
       });
       it("unknown custom error", async () => {
-        const { matchers } = await deployMatchers();
+        const { matchers } = await loadMatchersFixture();
         await expectAssertionError(
           expect(
             matchers.write.revertWithAnotherContractCustomError()
@@ -50,7 +57,7 @@ describe("toBeRevertedWithCustomError", () => {
         );
       });
       it("panic", async () => {
-        const { matchers } = await deployMatchers();
+        const { matchers } = await loadMatchersFixture();
         await expectAssertionError(
           expect(matchers.write.panicAssert()).toBeRevertedWithCustomError(
             "SomeCustomError"
@@ -61,14 +68,14 @@ describe("toBeRevertedWithCustomError", () => {
     });
     describe("negated", () => {
       it("successful transaction", async () => {
-        const { matchers } = await deployMatchers();
+        const { matchers } = await loadMatchersFixture();
         await expect(matchers.write.succeeds()).not.toBeRevertedWithCustomError(
           "SomeCustomError"
         );
       });
       describe("reverted transaction", () => {
         it("matching custom error", async () => {
-          const { matchers } = await deployMatchers();
+          const { matchers } = await loadMatchersFixture();
           await expectAssertionError(
             expect(
               matchers.write.revertWithSomeCustomError()
@@ -77,25 +84,25 @@ describe("toBeRevertedWithCustomError", () => {
           );
         });
         it("mismatching custom error", async () => {
-          const { matchers } = await deployMatchers();
+          const { matchers } = await loadMatchersFixture();
           await expect(
             matchers.write.revertWithSomeCustomError()
           ).not.toBeRevertedWithCustomError("AnotherCustomError");
         });
         it("empty", async () => {
-          const { matchers } = await deployMatchers();
+          const { matchers } = await loadMatchersFixture();
           await expect(
             matchers.write.revertsWithoutReason()
           ).not.toBeRevertedWithCustomError("SomeCustomError");
         });
         it("unknown custom error", async () => {
-          const { matchers } = await deployMatchers();
+          const { matchers } = await loadMatchersFixture();
           await expect(
             matchers.write.revertWithAnotherContractCustomError()
           ).not.toBeRevertedWithCustomError("SomeCustomError");
         });
         it("panic", async () => {
-          const { matchers } = await deployMatchers();
+          const { matchers } = await loadMatchersFixture();
           await expect(
             matchers.write.panicAssert()
           ).not.toBeRevertedWithCustomError("SomeCustomError");
@@ -105,7 +112,7 @@ describe("toBeRevertedWithCustomError", () => {
   });
   describe("read", () => {
     it("successful transaction", async () => {
-      const { matchers } = await deployMatchers();
+      const { matchers } = await loadMatchersFixture();
       await expectAssertionError(
         expect(matchers.read.succeedsView()).toBeRevertedWithCustomError(
           "SomeCustomError"
@@ -115,13 +122,13 @@ describe("toBeRevertedWithCustomError", () => {
     });
     describe("reverted transaction", () => {
       it("matching custom error", async () => {
-        const { matchers } = await deployMatchers();
+        const { matchers } = await loadMatchersFixture();
         await expect(
           matchers.read.revertWithSomeCustomErrorView()
         ).toBeRevertedWithCustomError("SomeCustomError");
       });
       it("mismatching custom error", async () => {
-        const { matchers } = await deployMatchers();
+        const { matchers } = await loadMatchersFixture();
         await expectAssertionError(
           expect(
             matchers.read.revertWithSomeCustomErrorView()
@@ -130,7 +137,7 @@ describe("toBeRevertedWithCustomError", () => {
         );
       });
       it("empty", async () => {
-        const { matchers } = await deployMatchers();
+        const { matchers } = await loadMatchersFixture();
         await expectAssertionError(
           expect(
             matchers.read.revertsWithoutReasonView()
@@ -139,7 +146,7 @@ describe("toBeRevertedWithCustomError", () => {
         );
       });
       it("unknown custom error", async () => {
-        const { matchers } = await deployMatchers();
+        const { matchers } = await loadMatchersFixture();
         await expectAssertionError(
           expect(
             matchers.read.revertWithAnotherContractCustomErrorView()
@@ -148,7 +155,7 @@ describe("toBeRevertedWithCustomError", () => {
         );
       });
       it("panic", async () => {
-        const { matchers } = await deployMatchers();
+        const { matchers } = await loadMatchersFixture();
         await expectAssertionError(
           expect(matchers.read.panicAssertView()).toBeRevertedWithCustomError(
             "SomeCustomError"
@@ -159,14 +166,14 @@ describe("toBeRevertedWithCustomError", () => {
     });
     describe("negated", () => {
       it("successful transaction", async () => {
-        const { matchers } = await deployMatchers();
+        const { matchers } = await loadMatchersFixture();
         await expect(
           matchers.read.succeedsView()
         ).not.toBeRevertedWithCustomError("SomeCustomError");
       });
       describe("reverted transaction", () => {
         it("matching custom error", async () => {
-          const { matchers } = await deployMatchers();
+          const { matchers } = await loadMatchersFixture();
           await expectAssertionError(
             expect(
               matchers.read.revertWithSomeCustomErrorView()
@@ -175,25 +182,25 @@ describe("toBeRevertedWithCustomError", () => {
           );
         });
         it("mismatching custom error", async () => {
-          const { matchers } = await deployMatchers();
+          const { matchers } = await loadMatchersFixture();
           await expect(
             matchers.read.revertWithSomeCustomErrorView()
           ).not.toBeRevertedWithCustomError("AnotherCustomError");
         });
         it("empty", async () => {
-          const { matchers } = await deployMatchers();
+          const { matchers } = await loadMatchersFixture();
           await expect(
             matchers.read.revertsWithoutReasonView()
           ).not.toBeRevertedWithCustomError("SomeCustomError");
         });
         it("unknown custom error", async () => {
-          const { matchers } = await deployMatchers();
+          const { matchers } = await loadMatchersFixture();
           await expect(
             matchers.read.revertWithAnotherContractCustomErrorView()
           ).not.toBeRevertedWithCustomError("SomeCustomError");
         });
         it("panic", async () => {
-          const { matchers } = await deployMatchers();
+          const { matchers } = await loadMatchersFixture();
           await expect(
             matchers.read.panicAssertView()
           ).not.toBeRevertedWithCustomError("SomeCustomError");
@@ -205,7 +212,7 @@ describe("toBeRevertedWithCustomError", () => {
   describe("withArgs", () => {
     describe("write", () => {
       it("successful transaction", async () => {
-        const { matchers } = await deployMatchers();
+        const { matchers } = await loadMatchersFixture();
         await expectAssertionError(
           expect(matchers.write.succeeds())
             .toBeRevertedWithCustomError("CustomErrorWithUint")
@@ -215,13 +222,13 @@ describe("toBeRevertedWithCustomError", () => {
       });
       describe("reverted transaction", () => {
         it("matching custom error, single arg array", async () => {
-          const { matchers } = await deployMatchers();
+          const { matchers } = await loadMatchersFixture();
           await expect(matchers.write.revertWithCustomErrorWithUint([1n]))
             .toBeRevertedWithCustomError("CustomErrorWithUint")
             .withArgs(1n);
         });
         it("matching custom error, multiple arg array", async () => {
-          const { matchers } = await deployMatchers();
+          const { matchers } = await loadMatchersFixture();
           await expect(
             matchers.write.revertWithCustomErrorWithUintAndString([1n, "two"])
           )
@@ -229,19 +236,19 @@ describe("toBeRevertedWithCustomError", () => {
             .withArgs(1n, "two");
         });
         it("matching custom error, anyValue matcher", async () => {
-          const { matchers } = await deployMatchers();
+          const { matchers } = await loadMatchersFixture();
           await expect(matchers.write.revertWithCustomErrorWithUint([1n]))
             .toBeRevertedWithCustomError("CustomErrorWithUint")
             .withArgs(expect.anyValue);
         });
         it("matching custom error, inner array", async () => {
-          const { matchers } = await deployMatchers();
+          const { matchers } = await loadMatchersFixture();
           await expect(matchers.write.revertWithCustomErrorWithPair([1n, 1n]))
             .toBeRevertedWithCustomError("CustomErrorWithPair")
             .withArgs({ a: 1n, b: 1n });
         });
         it("matching custom error, mismatching args", async () => {
-          const { matchers } = await deployMatchers();
+          const { matchers } = await loadMatchersFixture();
           await expectAssertionError(
             expect(matchers.write.revertWithCustomErrorWithUint([1n]))
               .toBeRevertedWithCustomError("CustomErrorWithUint")
@@ -256,7 +263,7 @@ describe("toBeRevertedWithCustomError", () => {
           );
         });
         it("matching custom error, mismatching args with anyValue", async () => {
-          const { matchers } = await deployMatchers();
+          const { matchers } = await loadMatchersFixture();
           await expectAssertionError(
             expect(
               matchers.write.revertWithCustomErrorWithUintAndString([1n, "two"])

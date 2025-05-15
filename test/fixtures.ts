@@ -1,33 +1,51 @@
-import hre from "hardhat";
+import type {
+  DefaultChainType,
+  NetworkConnection,
+} from "hardhat/types/network";
 
-export async function deployMatchers() {
-  const networkConnection = await hre.network.connect();
-  const matchers = await networkConnection.viem.deployContract("Matchers", []);
-  return { matchers, networkConnection };
+export function createDeployMatchersFixture(
+  networkConnection: NetworkConnection<DefaultChainType>
+) {
+  return async function matchersFixture() {
+    const matchers = await networkConnection.viem.deployContract(
+      "Matchers",
+      []
+    );
+    return { matchers };
+  };
 }
 
-export async function deployEvents() {
-  const networkConnection = await hre.network.connect();
-  const anotherContract = await networkConnection.viem.deployContract(
-    "AnotherContract",
-    []
-  );
-  const events = await networkConnection.viem.deployContract("Events", [
-    anotherContract.address,
-  ]);
-  const matchers = await networkConnection.viem.deployContract("Matchers", []);
+export function createDeployEventsFixture(
+  networkConnection: NetworkConnection<DefaultChainType>
+) {
+  return async function eventsFixture() {
+    const anotherContract = await networkConnection.viem.deployContract(
+      "AnotherContract",
+      []
+    );
+    const events = await networkConnection.viem.deployContract("Events", [
+      anotherContract.address,
+    ]);
+    const matchers = await networkConnection.viem.deployContract(
+      "Matchers",
+      []
+    );
 
-  return { anotherContract, events, matchers, networkConnection };
+    return { anotherContract, events, matchers };
+  };
 }
 
-export async function deployBehaviour() {
-  const networkConnection = await hre.network.connect();
-  const accounts = await networkConnection.viem
-    .getWalletClients()
-    .then((clients) => clients.map((c) => c.account));
-  const behaviour = await networkConnection.viem.deployContract(
-    "Behaviour",
-    []
-  );
-  return { behaviour, accounts, networkConnection };
+export function createDeployBehaviourFixture(
+  networkConnection: NetworkConnection<DefaultChainType>
+) {
+  return async function behaviourFixture() {
+    const accounts = await networkConnection.viem
+      .getWalletClients()
+      .then((clients) => clients.map((c) => c.account));
+    const behaviour = await networkConnection.viem.deployContract(
+      "Behaviour",
+      []
+    );
+    return { behaviour, accounts };
+  };
 }
