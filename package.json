@@ -54,7 +54,7 @@
     "@nomicfoundation/hardhat-viem": "next",
     "@openzeppelin/contracts": "^5.0.2",
     "@types/bun": "latest",
-    "hardhat": "next",
+    "hardhat": "3.0.0-next.8",
     "ts-node": "^10.9.2",
     "typescript": "^5.4.5",
     "viem": "^2.28.1",

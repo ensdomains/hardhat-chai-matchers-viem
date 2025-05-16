@@ -2,9 +2,10 @@ import "@nomicfoundation/hardhat-viem";
 
 import type {
   ConstructorArgs,
-  ContractReturnType as ContractReturnType_,
+  ContractAbis,
   DeployContractConfig,
   GetContractAtConfig,
+  GetContractReturnType,
   HardhatViemHelpers as HardhatViemHelpers_,
 } from "@nomicfoundation/hardhat-viem/types";
 import type {
@@ -16,7 +17,14 @@ import type {
   ExtractAbiEvent,
   ExtractAbiEventNames,
 } from "abitype";
-import type { Abi, Address, PublicClient, WriteContractReturnType } from "viem";
+import type { Artifact } from "hardhat/types/artifacts";
+import type {
+  Abi,
+  Address,
+  ContractConstructorArgs,
+  PublicClient,
+  WriteContractReturnType,
+} from "viem";
 import type { anyValueSymbol, panicReasons } from "./constants.js";
 
 interface Constructable<T> {
@@ -238,17 +246,17 @@ type GetReturnTypeWithNestedKey<T, K, Kn> = K extends keyof T
     : never
   : never;
 
-type ContractReturnType<ContractName> = Omit<
-  ContractReturnType_<ContractName>,
-  "write" | "read"
-> & {
+type ContractReturnType<
+  abi extends Abi,
+  _GetContractReturnType extends GetContractReturnType<abi> = GetContractReturnType<abi>
+> = Omit<_GetContractReturnType, "write" | "read"> & {
   client: PublicClient;
-} & ("write" extends keyof ContractReturnType_<ContractName>
+} & ("write" extends keyof _GetContractReturnType
     ? {
         write: {
-          [key in keyof ContractReturnType_<ContractName>["write"]]: <
+          [key in keyof _GetContractReturnType["write"]]: <
             const TParams extends GetParametersWithNestedKey<
-              ContractReturnType_<ContractName>,
+              _GetContractReturnType,
               "write",
               key
             >
@@ -263,29 +271,25 @@ type ContractReturnType<ContractName> = Omit<
                 : never
               : never,
             "write",
-            ContractReturnType_<ContractName>["abi"],
-            ContractReturnType_<ContractName>["address"]
+            _GetContractReturnType["abi"],
+            _GetContractReturnType["address"]
           >;
         };
       }
     : unknown) &
-  ("read" extends keyof ContractReturnType_<ContractName>
+  ("read" extends keyof _GetContractReturnType
     ? {
         read: {
-          [key in keyof ContractReturnType_<ContractName>["read"]]: <
+          [key in keyof _GetContractReturnType["read"]]: <
             const TParams extends GetParametersWithNestedKey<
-              ContractReturnType_<ContractName>,
+              _GetContractReturnType,
               "read",
               key
             >
           >(
             ...parameters: TParams
           ) => PromiseWithCallMetadata<
-            GetReturnTypeWithNestedKey<
-              ContractReturnType_<ContractName>,
-              "read",
-              key
-            >,
+            GetReturnTypeWithNestedKey<_GetContractReturnType, "read", key>,
             key extends string ? key : never,
             TParams extends [infer TFirst, ...unknown[]]
               ? TFirst extends unknown[]
@@ -293,12 +297,25 @@ type ContractReturnType<ContractName> = Omit<
                 : never
               : never,
             "read",
-            ContractReturnType_<ContractName>["abi"],
-            ContractReturnType_<ContractName>["address"]
+            _GetContractReturnType["abi"],
+            _GetContractReturnType["address"]
           >;
         };
       }
     : unknown);
+
+interface DeployContract {
+  <ContractName extends keyof ContractAbis>(
+    contractName: ContractName,
+    constructorArgs?: ConstructorArgs<ContractName>,
+    deployContractConfig?: DeployContractConfig
+  ): Promise<ContractReturnType<ContractAbis[ContractName]>>;
+  <ContractArtifact extends Artifact>(
+    contractArtifact: ContractArtifact,
+    constructorArgs?: ContractConstructorArgs<ContractArtifact["abi"]>,
+    deployContractConfig?: DeployContractConfig
+  ): Promise<ContractReturnType<ContractArtifact["abi"]>>;
+}
 
 declare module "hardhat/types/network" {
   type HardhatViemHelpers<
@@ -307,16 +324,12 @@ declare module "hardhat/types/network" {
     HardhatViemHelpers_<ChainTypeT>,
     "deployContract" | "getContractAt"
   > & {
-    deployContract: <ContractName extends string>(
-      contractName: ContractName,
-      constructorArgs?: ConstructorArgs<ContractName>,
-      deployContractConfig?: DeployContractConfig
-    ) => Promise<ContractReturnType<ContractName>>;
-    getContractAt: <ContractName extends string>(
+    deployContract: DeployContract;
+    getContractAt: <ContractName extends keyof ContractAbis>(
       contractName: ContractName,
       address: Address,
       getContractAtConfig?: GetContractAtConfig
-    ) => Promise<ContractReturnType<ContractName>>;
+    ) => Promise<ContractReturnType<ContractAbis[ContractName]>>;
   };
 }
 

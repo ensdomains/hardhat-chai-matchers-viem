@@ -1,11 +1,17 @@
 import type { HookContext, NetworkHooks } from "hardhat/types/hooks";
 import type { ChainType, NetworkConnection } from "hardhat/types/network";
 
+import { deployCustomContract } from "../../utils/deployCustomContract.js";
 import { addChaiMatchers } from "../addChaiMatchers.js";
 
 let isInitialized = false;
 
-type PromiseWithMetadata<TMetadata, TValue> = Promise<TValue> & TMetadata;
+type ParametersWithoutClient<T extends (...args: any[]) => any> = T extends (
+  client: any,
+  ...args: infer Rest
+) => any
+  ? Rest
+  : never;
 
 export default async (): Promise<Partial<NetworkHooks>> => {
   const handlers: Partial<NetworkHooks> = {
@@ -25,9 +31,7 @@ export default async (): Promise<Partial<NetworkHooks>> => {
       const originalGetContractAt = connection.viem.getContractAt;
 
       const createFunctionProxy = async (
-        originalFunction: (
-          ...args: any[]
-        ) => ReturnType<typeof originalDeployContract>,
+        originalFunction: (...args: any[]) => Promise<any>,
         ...args: any[]
       ) => {
         const result = await originalFunction(...args);
@@ -70,10 +74,13 @@ export default async (): Promise<Partial<NetworkHooks>> => {
         return result;
       };
 
-      connection.viem.deployContract = async (...args) =>
-        createFunctionProxy(originalDeployContract, ...args);
-      connection.viem.getContractAt = async (...args) =>
-        createFunctionProxy(originalGetContractAt, ...args);
+      connection.viem.deployContract = async (...args: any[]) => {
+        if (typeof args[0] === "string")
+          return createFunctionProxy(originalDeployContract, ...args);
+        return createFunctionProxy(deployCustomContract, connection, ...args);
+      };
+      connection.viem.getContractAt = async (...args: any[]) =>
+        createFunctionProxy(originalGetContractAt as never, ...args);
 
       return connection;
     },
