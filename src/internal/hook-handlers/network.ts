@@ -6,13 +6,6 @@ import { addChaiMatchers } from "../addChaiMatchers.js";
 
 let isInitialized = false;
 
-type ParametersWithoutClient<T extends (...args: any[]) => any> = T extends (
-  client: any,
-  ...args: infer Rest
-) => any
-  ? Rest
-  : never;
-
 export default async (): Promise<Partial<NetworkHooks>> => {
   const handlers: Partial<NetworkHooks> = {
     async newConnection<ChainTypeT extends ChainType | string>(
@@ -34,6 +27,16 @@ export default async (): Promise<Partial<NetworkHooks>> => {
         originalFunction: (...args: any[]) => Promise<any>,
         ...args: any[]
       ) => {
+        const client = (() => {
+          const lastArg = args[args.length - 1];
+          if (
+            typeof lastArg === "object" &&
+            "client" in lastArg &&
+            "public" in lastArg.client
+          )
+            return lastArg.client.public;
+          return publicClient;
+        })();
         const result = await originalFunction(...args);
         const createMetadataProxy = (
           original: unknown,
@@ -50,7 +53,7 @@ export default async (): Promise<Partial<NetworkHooks>> => {
                   resultPromise.__call_metadata = {
                     functionName,
                     args,
-                    client: publicClient,
+                    client,
                     kind,
                     abi: result.abi,
                     address: result.address,

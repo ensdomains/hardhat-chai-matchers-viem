@@ -2,6 +2,7 @@ import { expect } from "chai";
 import hre from "hardhat";
 import { describe, it } from "vitest";
 
+import type { PublicClient } from "@nomicfoundation/hardhat-viem/types";
 import { createDeployMatchersFixture } from "./fixtures.js";
 import { matchersArtifact } from "./fixtures/matchersArtifact.js";
 import { createFixture } from "./helpers.js";
@@ -34,5 +35,33 @@ describe("standard", () => {
     );
     await expect(matchers.read.succeedsView()).resolves.toBe(0n);
     await expect(matchers.write.revertsWithoutReason()).toBeReverted();
+  });
+
+  it("should allow funcs to be used with a custom client", async () => {
+    let doError = false;
+    const realPublicClient = await networkConnection.viem.getPublicClient();
+    const publicClient = new Proxy(
+      {},
+      {
+        get(_, prop) {
+          if (doError)
+            return async () => {
+              throw new Error("test");
+            };
+          return realPublicClient[prop as keyof typeof realPublicClient];
+        },
+      }
+    ) as unknown as PublicClient;
+    const contract = await networkConnection.viem.deployContract(
+      "Matchers",
+      [],
+      {
+        client: {
+          public: publicClient,
+        },
+      }
+    );
+    doError = true;
+    await expect(contract.read.succeedsView()).rejects.toThrowError("test");
   });
 });
