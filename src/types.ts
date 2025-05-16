@@ -17,11 +17,11 @@ import type {
   ExtractAbiEvent,
   ExtractAbiEventNames,
 } from "abitype";
-import type { Artifact } from "hardhat/types/artifacts";
 import type {
   Abi,
   Address,
   ContractConstructorArgs,
+  Hex,
   PublicClient,
   WriteContractReturnType,
 } from "viem";
@@ -30,6 +30,11 @@ import type { anyValueSymbol, panicReasons } from "./constants.js";
 interface Constructable<T> {
   new (...args: any[]): T;
 }
+
+export type AnyArtifact<abi extends Abi = Abi> = {
+  abi: abi;
+  bytecode: Hex;
+};
 
 type ExtendsOrNever<TCompare, TBase, TFunc> = TCompare extends TBase
   ? TFunc
@@ -310,7 +315,7 @@ interface DeployContract {
     constructorArgs?: ConstructorArgs<ContractName>,
     deployContractConfig?: DeployContractConfig
   ): Promise<ContractReturnType<ContractAbis[ContractName]>>;
-  <ContractArtifact extends Artifact>(
+  <ContractArtifact extends AnyArtifact>(
     contractArtifact: ContractArtifact,
     constructorArgs?: ContractConstructorArgs<ContractArtifact["abi"]>,
     deployContractConfig?: DeployContractConfig
