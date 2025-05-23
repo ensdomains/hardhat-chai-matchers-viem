@@ -1,13 +1,6 @@
-import "@nomicfoundation/hardhat-viem";
+import "vitest";
 
-import type {
-  ConstructorArgs,
-  ContractAbis,
-  DeployContractConfig,
-  GetContractAtConfig,
-  GetContractReturnType,
-  HardhatViemHelpers as HardhatViemHelpers_,
-} from "@nomicfoundation/hardhat-viem/types";
+import type { GetContractReturnType } from "@nomicfoundation/hardhat-viem/types";
 import type {
   AbiError,
   AbiEvent,
@@ -19,13 +12,13 @@ import type {
 } from "abitype";
 import type {
   Abi,
+  AbiEventParametersToPrimitiveTypes,
   Address,
-  ContractConstructorArgs,
   Hex,
   PublicClient,
   WriteContractReturnType,
 } from "viem";
-import type { anyValueSymbol, panicReasons } from "./constants.js";
+import type { panicReasons } from "./constants.js";
 
 interface Constructable<T> {
   new (...args: any[]): T;
@@ -40,56 +33,17 @@ type ExtendsOrNever<TCompare, TBase, TFunc> = TCompare extends TBase
   ? TFunc
   : never;
 
-interface JestAssertion<T = unknown> {
-  toStrictEqual: (expected: T) => void;
-  toBe: (expected: T) => void;
-  toMatch: (expected: string | RegExp) => void;
-  toMatchObject: ExtendsOrNever<T, {} | any[], (expected: T) => void>;
-  toContain: ExtendsOrNever<T, any[], (item: T[keyof T]) => void>;
-  toContainEqual: ExtendsOrNever<T, any[], (item: T[keyof T]) => void>;
-  toBeTruthy: () => void;
-  toBeFalsy: () => void;
-  toBeGreaterThan: ExtendsOrNever<T, number | bigint, (num: T) => void>;
-  toBeGreaterThanOrEqual: ExtendsOrNever<T, number | bigint, (num: T) => void>;
-  toBeLessThan: ExtendsOrNever<T, number | bigint, (num: T) => void>;
-  toBeLessThanOrEqual: ExtendsOrNever<T, number | bigint, (num: T) => void>;
-  toBeNaN: () => void;
-  toBeUndefined: () => void;
-  toBeNull: () => void;
-  toBeDefined: () => void;
-  toBeInstanceOf: (expected: Constructable<T>) => void;
-  toBeCalledTimes: (times: number) => void;
-  toHaveLength: (length: number) => void;
-  toHaveProperty: ExtendsOrNever<
-    T,
-    object,
-    <key extends keyof T>(property: key, value?: T[key]) => void
-  >;
-  toBeCloseTo: ExtendsOrNever<
-    T,
-    number,
-    (number: T, numDigits?: number) => void
-  >;
-  toThrow: (expected?: string | Constructable<any> | RegExp | Error) => void;
-  toThrowError: (
-    expected?: string | Constructable<any> | RegExp | Error
-  ) => void;
-  toReturn: () => void;
-  toHaveReturned: () => void;
-  toReturnTimes: (times: number) => void;
-  toHaveReturnedTimes: (times: number) => void;
-  toReturnWith: <E>(value: E) => void;
-  toHaveReturnedWith: <E>(value: E) => void;
-  toHaveLastReturnedWith: <E>(value: E) => void;
-  lastReturnedWith: <E>(value: E) => void;
-  toHaveNthReturnedWith: <E>(nthCall: number, value: E) => void;
-  nthReturnedWith: <E>(nthCall: number, value: E) => void;
-  toEqualAddress: ExtendsOrNever<T, Address, (address: Address) => void>;
-}
+type ContractEventArgs<abiEvent extends AbiEvent = AbiEvent> =
+  AbiEventParametersToPrimitiveTypes<
+    abiEvent["inputs"],
+    { EnableUnion: false; IndexedOnly: false; Required: true }
+  > extends infer args
+    ? [args] extends [never]
+      ? readonly unknown[] | Record<string, unknown>
+      : args
+    : readonly unknown[] | Record<string, unknown>;
 
 export type AnyContract = { abi: Abi | unknown[]; address: Address };
-
-export type AnyValue = typeof anyValueSymbol;
 
 interface AsyncAssertion extends Promise<void> {}
 
@@ -99,23 +53,17 @@ interface ErrorAssertion<
     abiError["inputs"]
   >
 > extends AsyncAssertion {
-  withArgs: (
-    ...args: { [arg in keyof args]: args[arg] | AnyValue }
-  ) => Promise<void>;
+  withArgs: (args: args) => Promise<void>;
 }
 
 interface EventAssertion<
   abiEvent extends AbiEvent = AbiEvent,
-  args extends readonly unknown[] = AbiParametersToPrimitiveTypes<
-    abiEvent["inputs"]
-  >
+  args extends ContractEventArgs<abiEvent> = ContractEventArgs<abiEvent>
 > extends AsyncAssertion {
-  withArgs: (
-    ...args: { [arg in keyof args]: args[arg] | AnyValue }
-  ) => Promise<void>;
+  withArgs: (args: args) => Promise<void>;
 }
 
-interface ReadCallAssertion<
+export interface ReadCallAssertion<
   abi extends Abi | readonly unknown[],
   isNegated extends boolean = false
 > extends RevertAssertion<abi> {
@@ -158,6 +106,20 @@ interface RevertAssertion<abi extends Abi | readonly unknown[]> {
   ) => ErrorAssertion<
     ExtractAbiError<errorsAbi extends Abi ? errorsAbi : Abi, errorNames>
   >;
+  toBeRevertedWithCustomErrorFrom: <
+    specifiedContract extends AnyContract,
+    errorsAbi extends Abi | readonly unknown[] = specifiedContract["abi"],
+    errorNames extends errorsAbi extends Abi
+      ? ExtractAbiErrorNames<errorsAbi>
+      : string = errorsAbi extends Abi
+      ? ExtractAbiErrorNames<errorsAbi>
+      : string
+  >(
+    contract: specifiedContract,
+    errorName: errorNames
+  ) => ErrorAssertion<
+    ExtractAbiError<errorsAbi extends Abi ? errorsAbi : Abi, errorNames>
+  >;
 }
 
 interface EmitEventAssertion<abi extends Abi | readonly unknown[]> {
@@ -187,28 +149,6 @@ interface EmitEventAssertion<abi extends Abi | readonly unknown[]> {
   ) => EventAssertion<
     ExtractAbiEvent<eventsAbi extends Abi ? eventsAbi : Abi, eventNames>
   >;
-}
-
-type ParametersOrNever<T> = T extends (...args: infer A) => any ? A : never;
-
-type Promisify<O> = {
-  [K in keyof O]: O[K] extends (...args: infer A) => infer R
-    ? O extends R
-      ? Promisify<O[K]>
-      : (...args: A) => Promise<R>
-    : O[K];
-};
-
-interface GenericAssertion<T = unknown, isNegated extends boolean = false>
-  extends JestAssertion<T> {
-  resolves: Promisify<
-    GenericAssertion<Awaited<T> extends never ? T : Awaited<T>>
-  >;
-  rejects: Promisify<
-    GenericAssertion<Awaited<T> extends never ? T : Awaited<T>>
-  >;
-  toEqual: (expected: Awaited<T> extends never ? T : Awaited<T>) => void;
-  not: isNegated extends true ? never : GenericAssertion<T, true>;
 }
 
 export type PromiseWithCallMetadata<
@@ -251,7 +191,7 @@ type GetReturnTypeWithNestedKey<T, K, Kn> = K extends keyof T
     : never
   : never;
 
-type ContractReturnType<
+export type ContractReturnType<
   abi extends Abi,
   _GetContractReturnType extends GetContractReturnType<abi> = GetContractReturnType<abi>
 > = Omit<_GetContractReturnType, "write" | "read"> & {
@@ -308,70 +248,3 @@ type ContractReturnType<
         };
       }
     : unknown);
-
-interface DeployContract {
-  <ContractName extends keyof ContractAbis>(
-    contractName: ContractName,
-    constructorArgs?: ConstructorArgs<ContractName>,
-    deployContractConfig?: DeployContractConfig
-  ): Promise<ContractReturnType<ContractAbis[ContractName]>>;
-  <ContractArtifact extends AnyArtifact>(
-    contractArtifact: ContractArtifact,
-    constructorArgs?: ContractConstructorArgs<ContractArtifact["abi"]>,
-    deployContractConfig?: DeployContractConfig
-  ): Promise<ContractReturnType<ContractArtifact["abi"]>>;
-}
-
-declare module "hardhat/types/network" {
-  type HardhatViemHelpers<
-    ChainTypeT extends ChainType | string = DefaultChainType
-  > = Omit<
-    HardhatViemHelpers_<ChainTypeT>,
-    "deployContract" | "getContractAt"
-  > & {
-    deployContract: DeployContract;
-    getContractAt: <ContractName extends keyof ContractAbis>(
-      contractName: ContractName,
-      address: Address,
-      getContractAtConfig?: GetContractAtConfig
-    ) => Promise<ContractReturnType<ContractAbis[ContractName]>>;
-  };
-}
-
-declare global {
-  namespace Chai {
-    interface ExpectStatic {
-      <
-        const TResult,
-        const TFunctionName extends string,
-        const TArgs extends unknown[],
-        const TKind extends "write" | "read",
-        const TAbi extends Abi | readonly unknown[],
-        const TAddress extends Address
-      >(
-        call: PromiseWithCallMetadata<
-          TResult,
-          TFunctionName,
-          TArgs,
-          TKind,
-          TAbi,
-          TAddress
-        >
-      ): (TKind extends "write"
-        ? WriteCallAssertion<TAbi>
-        : ReadCallAssertion<TAbi>) &
-        GenericAssertion<
-          PromiseWithCallMetadata<
-            TResult,
-            TFunctionName,
-            TArgs,
-            TKind,
-            TAbi,
-            TAddress
-          >
-        >;
-      <T>(actual: T, message?: string): GenericAssertion<T>;
-      anyValue: AnyValue;
-    }
-  }
-}

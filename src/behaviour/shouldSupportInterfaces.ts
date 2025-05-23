@@ -2,7 +2,6 @@
 // Copyright (c) 2016-2020 zOS Global Limited
 
 import type { GetContractReturnType } from "@nomicfoundation/hardhat-viem/types";
-import { expect } from "chai";
 import hre from "hardhat";
 import type { ArtifactMap } from "hardhat/types/artifacts";
 import type {
@@ -18,7 +17,7 @@ import {
   type Abi,
   type Address,
 } from "viem";
-import { beforeAll, describe, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 
 import {
   createInterfaceId,

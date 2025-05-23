@@ -1,12 +1,45 @@
 import { getKnownPanicReason } from "../constants.js";
 import { TO_BE_REVERTED_WITH_PANIC_MATCHER } from "./constants.js";
 import { getNegated, preventAsyncMatcherChaining } from "./utils.js";
+import { addMethod } from "./utils/addMethod.js";
 import { buildAssert } from "./utils/buildAssert.js";
+import { expectedLine, matcherHint, receivedLine } from "./utils/formatter.js";
 import { getCall } from "./utils/getCall.js";
-import { getReturnDataFromError } from "./utils/getReturnDataFromError.js";
+import {
+  errorWhy,
+  getReturnDataFromError,
+} from "./utils/getReturnDataFromError.js";
 
-export function supportRevertedWithPanic(Assertion: Chai.AssertionStatic) {
-  Assertion.addMethod(
+const toBeRevertedWithPanicMessage = ({
+  expectedCode,
+  negated,
+  why,
+}: {
+  expectedCode: bigint | undefined;
+  negated: boolean;
+  why: string;
+}) => {
+  const expectedString = `${negated ? "NOT " : ""}${
+    expectedCode
+      ? errorWhy.panic(expectedCode, getKnownPanicReason(expectedCode))
+      : "transaction reverted with some panic code"
+  }`;
+  return [
+    "",
+    matcherHint({
+      matcherName: `.${TO_BE_REVERTED_WITH_PANIC_MATCHER}`,
+      expected: expectedCode ? `${expectedCode}` : "",
+      isNot: negated,
+    }),
+    "",
+    expectedLine(expectedString),
+    receivedLine(why),
+  ].join("\n");
+};
+
+export function supportRevertedWithPanic(chai: Chai.ChaiStatic) {
+  addMethod(
+    chai,
     TO_BE_REVERTED_WITH_PANIC_MATCHER,
     async function (
       this: Chai.AssertionStatic,
@@ -29,72 +62,41 @@ export function supportRevertedWithPanic(Assertion: Chai.AssertionStatic) {
         matcherName: TO_BE_REVERTED_WITH_PANIC_MATCHER,
       });
 
-      const formattedExpectedCode = expectedCode
-        ? (`panic code ${expectedCode} (${getKnownPanicReason(
-            expectedCode
-          )})` as const)
-        : ("some panic code" as const);
-
       const onSuccess = async () => {
-        const assert = buildAssert(!!negated, onSuccess);
+        const assert = buildAssert(chai, !!negated, onSuccess);
+        const msg = toBeRevertedWithPanicMessage({
+          expectedCode,
+          negated,
+          why: "no revert",
+        });
 
         assert({
           condition: false,
-          messageFalse: `Expected transaction to be reverted with ${formattedExpectedCode}, but it didn't revert`,
+          messageFalse: msg,
         });
       };
 
       const onError = (error: unknown) => {
-        const assert = buildAssert(!!negated, onError);
+        const assert = buildAssert(chai, !!negated, onError);
         const returnData = getReturnDataFromError(metadata, error);
 
         if (returnData.kind === "unknown-local") throw error;
 
-        if (returnData.kind === "empty") {
-          assert({
-            condition: false,
-            messageFalse: `Expected transaction to be reverted with ${formattedExpectedCode}, but it reverted without a reason`,
-          });
-          return;
-        }
-
-        if (returnData.kind === "unknown-contract") {
-          assert({
-            condition: false,
-            messageFalse: `Expected transaction to be reverted with ${formattedExpectedCode}, but it reverted with unknown error`,
-          });
-          return;
-        }
-
-        if (returnData.kind === "error") {
-          assert({
-            condition: false,
-            messageFalse: `Expected transaction to be reverted with ${formattedExpectedCode}, but it reverted with reason '${returnData.reason}'`,
-          });
-          return;
-        }
-
-        if (returnData.kind === "custom") {
-          assert({
-            condition: false,
-            messageFalse: `Expected transaction to be reverted with ${formattedExpectedCode}, but it reverted with custom error '${returnData.name}'`,
-          });
-          return;
-        }
-
-        if (expectedCode !== undefined) {
-          assert({
-            condition: returnData.code === expectedCode,
-            messageFalse: `Expected transaction to be reverted with ${formattedExpectedCode}, but it reverted with panic code ${returnData.code} (${returnData.description})`,
-            messageTrue: `Expected transaction NOT to be reverted with ${formattedExpectedCode}, but it was`,
-          });
-          return;
-        }
+        const msg = toBeRevertedWithPanicMessage({
+          expectedCode,
+          negated,
+          why: returnData.why,
+        });
 
         assert({
-          condition: true,
-          messageTrue: `Expected transaction NOT to be reverted with ${formattedExpectedCode}, but it reverted with panic code ${returnData.code} (${returnData.description})`,
+          condition:
+            returnData.kind === "panic" &&
+            (!expectedCode || returnData.code === expectedCode),
+          messageFalse: msg,
+          messageTrue: msg,
+          solidityStack: returnData.sourceError?.stack,
         });
+        return;
       };
 
       const derivedPromise = functionCall.then(onSuccess, onError);

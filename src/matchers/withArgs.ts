@@ -1,9 +1,14 @@
 import { getWithArgs, setWithArgs } from "./utils.js";
+import { addMethod } from "./utils/addMethod.js";
 
-export function supportWithArgs(Assertion: Chai.AssertionStatic) {
-  Assertion.addMethod(
+export function supportWithArgs(chai: Chai.ChaiStatic) {
+  addMethod(
+    chai,
     "withArgs",
-    async function (this: Chai.AssertionStatic, ...args: unknown[]) {
+    async function (
+      this: Chai.AssertionStatic,
+      args: unknown[] | Record<string, unknown>
+    ) {
       const existingArgs = getWithArgs(this);
 
       if (existingArgs)

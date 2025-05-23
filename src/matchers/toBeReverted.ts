@@ -2,14 +2,33 @@ import { getTransactionReceipt } from "viem/actions";
 
 import { TO_BE_REVERTED_MATCHER } from "./constants.js";
 import { getNegated, preventAsyncMatcherChaining } from "./utils.js";
+import { addMethod } from "./utils/addMethod.js";
 import { assertIsNotNull } from "./utils/assertIsNotNull.js";
 import { buildAssert } from "./utils/buildAssert.js";
+import { expectedLine, matcherHint, receivedLine } from "./utils/formatter.js";
 import { getCall } from "./utils/getCall.js";
 import { getReturnDataFromError } from "./utils/getReturnDataFromError.js";
 import { isValidTransactionHash } from "./utils/isValidTransactionHash.js";
 
-export function supportReverted(Assertion: Chai.AssertionStatic) {
-  Assertion.addMethod(
+const toBeRevertedMessage =
+  ({ negated }: { negated: boolean }) =>
+  ({ why }: { why: string }) => {
+    return [
+      "",
+      matcherHint({
+        matcherName: `.${TO_BE_REVERTED_MATCHER}`,
+        expected: "",
+        isNot: negated,
+      }),
+      "",
+      expectedLine(negated ? "no revert" : "revert"),
+      receivedLine(why),
+    ].join("\n");
+  };
+
+export function supportReverted(chai: Chai.ChaiStatic) {
+  addMethod(
+    chai,
     TO_BE_REVERTED_MATCHER,
     async function (this: Chai.AssertionStatic) {
       const negated = getNegated(this);
@@ -22,13 +41,16 @@ export function supportReverted(Assertion: Chai.AssertionStatic) {
       const metadata = functionCall.__call_metadata;
 
       const onSuccess = async (value: unknown) => {
-        const assert = buildAssert(!!negated, onSuccess);
+        const assert = buildAssert(chai, !!negated, onSuccess);
+        const msg = toBeRevertedMessage({ negated });
+        const messageFalse = msg({ why: "no revert" });
+        const messageTrue = msg({ why: "revert" });
 
         if (metadata.kind === "read") {
           assert({
             condition: false,
-            messageFalse: "Expected transaction to be reverted",
-            messageTrue: "Expected transaction NOT to be reverted",
+            messageFalse,
+            messageTrue,
           });
           return;
         }
@@ -44,53 +66,24 @@ export function supportReverted(Assertion: Chai.AssertionStatic) {
         assertIsNotNull(receipt, "receipt");
         assert({
           condition: receipt.status === "reverted",
-          messageFalse: "Expected transaction to be reverted",
-          messageTrue: "Expected transaction NOT to be reverted",
+          messageFalse,
+          messageTrue,
         });
       };
 
       const onError = (error: unknown) => {
-        const assert = buildAssert(!!negated, onError);
+        const assert = buildAssert(chai, !!negated, onError);
+        const msg = toBeRevertedMessage({ negated });
         const returnData = getReturnDataFromError(metadata, error);
 
         if (returnData.kind === "unknown-local") throw error;
 
-        if (returnData.kind === "empty") {
-          assert({
-            condition: true,
-            messageTrue: "Expected transaction NOT to be reverted",
-          });
-          return;
-        }
-
-        if (returnData.kind === "unknown-contract") {
-          assert({
-            condition: true,
-            messageTrue: `Expected transaction NOT to be reverted, but it reverted with unknown error`,
-          });
-          return;
-        }
-
-        if (returnData.kind === "panic") {
-          assert({
-            condition: true,
-            messageTrue: `Expected transaction NOT to be reverted, but it reverted with panic code ${returnData.code} (${returnData.description})`,
-          });
-          return;
-        }
-
-        if (returnData.kind === "error") {
-          assert({
-            condition: true,
-            messageTrue: `Expected transaction NOT to be reverted, but it reverted with reason '${returnData.reason}'`,
-          });
-          return;
-        }
-
         assert({
           condition: true,
-          messageTrue: `Expected transaction NOT to be reverted, but it reverted with custom error '${returnData.name}'`,
+          messageTrue: msg({ why: returnData.why }),
+          solidityStack: returnData.sourceError?.stack,
         });
+        return;
       };
 
       const derivedPromise = functionCall.then(onSuccess, onError);

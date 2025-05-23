@@ -9,7 +9,8 @@
     "outDir": "build",
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "rootDir": "."
   },
   "ts-node": {
     "experimentalResolver": true,
@@ -18,5 +19,5 @@
   },
   "files": ["hardhat.config.ts"],
   "include": ["./test/**/*.ts", "./src/**/*.ts", "./artifacts/**/*.d.ts"],
-  "exclude": ["dist"]
+  "exclude": ["dist/**/*"]
 }

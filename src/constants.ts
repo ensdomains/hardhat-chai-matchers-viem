@@ -21,5 +21,3 @@ export const getKnownPanicReason = (code: bigint) => {
 };
 
 export type PanicCode = keyof typeof panicReasons;
-
-export const anyValueSymbol = Symbol.for("hh-viem-chai-matchers:anyValue");

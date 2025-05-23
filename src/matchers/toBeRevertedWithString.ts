@@ -1,11 +1,45 @@
 import { TO_BE_REVERTED_WITH_STRING_MATCHER } from "./constants.js";
 import { getNegated, preventAsyncMatcherChaining } from "./utils.js";
+import { addMethod } from "./utils/addMethod.js";
 import { buildAssert } from "./utils/buildAssert.js";
+import { expectedLine, matcherHint, receivedLine } from "./utils/formatter.js";
 import { getCall } from "./utils/getCall.js";
 import { getReturnDataFromError } from "./utils/getReturnDataFromError.js";
 
-export function supportRevertedWithString(Assertion: Chai.AssertionStatic) {
-  Assertion.addMethod(
+const toBeRevertedWithStringMessage = ({
+  expectedReasonString,
+  isRegExp,
+  negated,
+  why,
+}: {
+  expectedReasonString: string;
+  isRegExp: boolean;
+  negated: boolean;
+  why: string;
+}) => {
+  const expectedString = `${
+    negated ? "NOT " : ""
+  }transaction reverted with string: ${
+    isRegExp ? `matching ${expectedReasonString}` : expectedReasonString
+  }`;
+  return [
+    "",
+    matcherHint({
+      matcherName: `.${TO_BE_REVERTED_WITH_STRING_MATCHER}`,
+      expected: `${
+        isRegExp ? expectedReasonString : `"${expectedReasonString}"`
+      }`,
+      isNot: negated,
+    }),
+    "",
+    expectedLine(expectedString),
+    receivedLine(why),
+  ].join("\n");
+};
+
+export function supportRevertedWithString(chai: Chai.ChaiStatic) {
+  addMethod(
+    chai,
     TO_BE_REVERTED_WITH_STRING_MATCHER,
     async function (
       this: Chai.AssertionStatic,
@@ -16,10 +50,9 @@ export function supportRevertedWithString(Assertion: Chai.AssertionStatic) {
       const functionCall = getCall(this, TO_BE_REVERTED_WITH_STRING_MATCHER);
       const metadata = functionCall.__call_metadata;
 
-      if (
-        !(expectedReason instanceof RegExp) &&
-        typeof expectedReason !== "string"
-      )
+      const isRegExp = expectedReason instanceof RegExp;
+
+      if (!isRegExp && typeof expectedReason !== "string")
         throw new TypeError(
           `Expected a string or a regular expression, but got '${expectedReason}'`
         );
@@ -28,67 +61,49 @@ export function supportRevertedWithString(Assertion: Chai.AssertionStatic) {
         matcherName: TO_BE_REVERTED_WITH_STRING_MATCHER,
       });
 
-      const expectedReasonString =
-        expectedReason instanceof RegExp
-          ? expectedReason.source
-          : expectedReason;
+      const expectedReasonString = isRegExp
+        ? `/${expectedReason.source}/${expectedReason.flags}`
+        : expectedReason;
 
       const onSuccess = async () => {
-        const assert = buildAssert(!!negated, onSuccess);
+        const assert = buildAssert(chai, !!negated, onSuccess);
+        const msg = toBeRevertedWithStringMessage({
+          expectedReasonString,
+          isRegExp,
+          negated,
+          why: "no revert",
+        });
 
         assert({
           condition: false,
-          messageFalse: `Expected transaction to be reverted with reason '${expectedReasonString}', but it didn't revert`,
+          messageFalse: msg,
         });
       };
 
       const onError = (error: unknown) => {
-        const assert = buildAssert(!!negated, onError);
+        const assert = buildAssert(chai, !!negated, onError);
         const returnData = getReturnDataFromError(metadata, error);
 
         if (returnData.kind === "unknown-local") throw error;
 
-        if (returnData.kind === "empty") {
-          assert({
-            condition: false,
-            messageFalse: `Expected transaction to be reverted with reason '${expectedReasonString}', but it reverted without a reason`,
-          });
-          return;
-        }
-
-        if (returnData.kind === "unknown-contract") {
-          assert({
-            condition: false,
-            messageFalse: `Expected transaction to be reverted with reason '${expectedReasonString}', but it reverted with unknown error`,
-          });
-          return;
-        }
-
-        if (returnData.kind === "panic") {
-          assert({
-            condition: false,
-            messageFalse: `Expected transaction to be reverted with reason '${expectedReasonString}', but it reverted with panic code ${returnData.code} (${returnData.description})`,
-          });
-          return;
-        }
-
-        if (returnData.kind === "custom") {
-          assert({
-            condition: false,
-            messageFalse: `Expected transaction to be reverted with reason '${expectedReasonString}', but it reverted with custom error '${returnData.name}'`,
-          });
-          return;
-        }
-
-        const matchesExpectedReason =
-          expectedReason instanceof RegExp
-            ? expectedReason.test(returnData.reason)
-            : expectedReason === returnData.reason;
-        assert({
-          condition: matchesExpectedReason,
-          messageFalse: `Expected transaction to be reverted with reason '${expectedReasonString}', but it reverted with reason '${returnData.reason}'`,
-          messageTrue: `Expected transaction NOT to be reverted with reason '${expectedReasonString}', but it was`,
+        const msg = toBeRevertedWithStringMessage({
+          expectedReasonString,
+          isRegExp,
+          negated,
+          why: returnData.why,
         });
+
+        assert({
+          condition:
+            returnData.kind === "error" &&
+            (expectedReason instanceof RegExp
+              ? expectedReason.test(returnData.reason)
+              : expectedReason === returnData.reason),
+          messageFalse: msg,
+          messageTrue: msg,
+          solidityStack: returnData.sourceError?.stack,
+        });
+        return;
       };
 
       const derivedPromise = functionCall.then(onSuccess, onError);

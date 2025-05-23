@@ -1,13 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-contract Events {
-    AnotherContract anotherContract;
+import {Matchers} from "./Matchers.sol";
+
+contract Events is Matchers {
+    AnotherEventsContract anotherEventsContract;
 
     struct Struct {
         uint u;
         uint v;
     }
+
+    error SomeError();
 
     event WithoutArgs();
     event WithUintArg(uint u);
@@ -16,6 +20,8 @@ contract Events {
     event WithTwoUintArgs(uint u, uint v);
     event WithStringArg(string s);
     event WithTwoStringArgs(string s, string t);
+    event WithUnnamedStringArg(string);
+    event WithTwoUnnamedStringArgs(string, string);
     event WithIndexedStringArg(string indexed s);
     event WithBytesArg(bytes b);
     event WithIndexedBytesArg(bytes indexed b);
@@ -25,8 +31,8 @@ contract Events {
     event WithUintArray(uint[2] a);
     event WithBytes32Array(bytes32[2] a);
 
-    constructor(AnotherContract c) {
-        anotherContract = c;
+    constructor(AnotherEventsContract c) {
+        anotherEventsContract = c;
     }
 
     function doNotEmit() public {}
@@ -58,6 +64,14 @@ contract Events {
 
     function emitString(string memory s) public {
         emit WithStringArg(s);
+    }
+
+    function emitUnnamedString(string memory s) public {
+        emit WithUnnamedStringArg(s);
+    }
+
+    function emitTwoUnnamedStrings(string memory s, string memory t) public {
+        emit WithTwoUnnamedStringArgs(s, t);
     }
 
     function emitIndexedString(string memory s) public {
@@ -112,11 +126,11 @@ contract Events {
     }
 
     function emitNestedUintFromAnotherContract(uint u) public {
-        anotherContract.emitUint(u);
+        anotherEventsContract.emitUint(u);
     }
 }
 
-contract AnotherContract {
+contract AnotherEventsContract {
     event WithUintArg(uint u);
 
     function emitUint(uint u) public {

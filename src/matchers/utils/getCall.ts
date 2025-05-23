@@ -1,3 +1,4 @@
+import {} from "vitest";
 import type { UnknownReadPromise, UnknownWritePromise } from "../../types.js";
 
 const hasCallMetadata = (
@@ -19,8 +20,8 @@ export const getCall = (
   const subject: unknown = assertion._obj;
 
   if (!hasCallMetadata(subject))
-    throw new Error(
-      `The \`${matcher}\` matcher can only be used with a contract call`
+    throw new TypeError(
+      `You must provide a pending contract call to expect() when using .${matcher}, not '${typeof subject}'`
     );
 
   return subject as UnknownWritePromise | UnknownReadPromise;

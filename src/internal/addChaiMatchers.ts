@@ -1,9 +1,7 @@
-import { JestChaiExpect } from "@vitest/expect";
-import { use } from "chai";
+import { chai } from "vitest";
+
 import { hardhatChaiMatchers } from "../matchers.js";
-import "../types.js";
 
 export function addChaiMatchers() {
-  use(JestChaiExpect);
-  use(hardhatChaiMatchers);
+  chai.use(hardhatChaiMatchers);
 }

@@ -1,11 +1,37 @@
 import { TO_BE_REVERTED_WITHOUT_REASON_MATCHER } from "./constants.js";
 import { getNegated, preventAsyncMatcherChaining } from "./utils.js";
+import { addMethod } from "./utils/addMethod.js";
 import { buildAssert } from "./utils/buildAssert.js";
+import { expectedLine, matcherHint, receivedLine } from "./utils/formatter.js";
 import { getCall } from "./utils/getCall.js";
-import { getReturnDataFromError } from "./utils/getReturnDataFromError.js";
+import {
+  errorWhy,
+  getReturnDataFromError,
+} from "./utils/getReturnDataFromError.js";
 
-export function supportRevertedWithoutReason(Assertion: Chai.AssertionStatic) {
-  Assertion.addMethod(
+const toBeRevertedWithoutReasonMessage = ({
+  negated,
+  why,
+}: {
+  negated: boolean;
+  why: string;
+}) => {
+  return [
+    "",
+    matcherHint({
+      matcherName: `.${TO_BE_REVERTED_WITHOUT_REASON_MATCHER}`,
+      expected: "",
+      isNot: negated,
+    }),
+    "",
+    expectedLine(`${negated ? "not " : ""}${errorWhy.empty}`),
+    receivedLine(why),
+  ].join("\n");
+};
+
+export function supportRevertedWithoutReason(chai: Chai.ChaiStatic) {
+  addMethod(
+    chai,
     TO_BE_REVERTED_WITHOUT_REASON_MATCHER,
     async function (this: Chai.AssertionStatic) {
       const negated = getNegated(this);
@@ -18,56 +44,36 @@ export function supportRevertedWithoutReason(Assertion: Chai.AssertionStatic) {
       });
 
       const onSuccess = async () => {
-        const assert = buildAssert(!!negated, onSuccess);
+        const assert = buildAssert(chai, !!negated, onSuccess);
+        const msg = toBeRevertedWithoutReasonMessage({
+          negated,
+          why: "no revert",
+        });
 
         assert({
           condition: false,
-          messageFalse: `Expected transaction to be reverted without a reason, but it didn't revert`,
+          messageFalse: msg,
         });
       };
 
       const onError = (error: unknown) => {
-        const assert = buildAssert(!!negated, onError);
+        const assert = buildAssert(chai, !!negated, onError);
         const returnData = getReturnDataFromError(metadata, error);
 
         if (returnData.kind === "unknown-local") throw error;
 
-        if (returnData.kind === "unknown-contract") {
-          assert({
-            condition: false,
-            messageFalse: `Expected transaction to be reverted without a reason, but it reverted with unknown error`,
-          });
-          return;
-        }
-
-        if (returnData.kind === "panic") {
-          assert({
-            condition: false,
-            messageFalse: `Expected transaction to be reverted without a reason, but it reverted with panic code ${returnData.code} (${returnData.description})`,
-          });
-          return;
-        }
-
-        if (returnData.kind === "error") {
-          assert({
-            condition: false,
-            messageFalse: `Expected transaction to be reverted without a reason, but it reverted with error '${returnData.reason}'`,
-          });
-          return;
-        }
-
-        if (returnData.kind === "custom") {
-          assert({
-            condition: false,
-            messageFalse: `Expected transaction to be reverted without a reason, but it reverted with custom error '${returnData.name}'`,
-          });
-          return;
-        }
+        const msg = toBeRevertedWithoutReasonMessage({
+          negated,
+          why: returnData.why,
+        });
 
         assert({
-          condition: true,
-          messageTrue: `Expected transaction NOT to be reverted without a reason, but it was`,
+          condition: returnData.kind === "empty",
+          messageFalse: msg,
+          messageTrue: msg,
+          solidityStack: returnData.sourceError?.stack,
         });
+        return;
       };
 
       const derivedPromise = functionCall.then(onSuccess, onError);

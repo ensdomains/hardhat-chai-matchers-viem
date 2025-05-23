@@ -1,4 +1,3 @@
-import { anyValueSymbol } from "./constants.js";
 import { supportMisc } from "./matchers/misc.js";
 import { supportReverted } from "./matchers/toBeReverted.js";
 import { supportRevertedWithCustomError } from "./matchers/toBeRevertedWithCustomError.js";
@@ -10,15 +9,14 @@ import { supportWithArgs } from "./matchers/withArgs.js";
 
 export const hardhatChaiMatchers = (
   chai: Chai.ChaiStatic,
-  utils: Chai.ChaiUtils
+  _utils: Chai.ChaiUtils
 ) => {
-  chai.expect.anyValue = anyValueSymbol;
-  supportReverted(chai.Assertion);
-  supportRevertedWithCustomError(chai.Assertion);
-  supportRevertedWithoutReason(chai.Assertion);
-  supportRevertedWithPanic(chai.Assertion);
-  supportRevertedWithString(chai.Assertion);
-  supportsEmitEvent(chai.Assertion);
-  supportWithArgs(chai.Assertion);
-  supportMisc(chai.Assertion);
+  supportReverted(chai);
+  supportRevertedWithCustomError(chai);
+  supportRevertedWithoutReason(chai);
+  supportRevertedWithPanic(chai);
+  supportRevertedWithString(chai);
+  supportsEmitEvent(chai);
+  supportWithArgs(chai);
+  supportMisc(chai);
 };

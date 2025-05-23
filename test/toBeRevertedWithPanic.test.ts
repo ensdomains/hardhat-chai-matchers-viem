@@ -1,9 +1,8 @@
-import { expect } from "chai";
 import hre from "hardhat";
-import { describe, it } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { createDeployMatchersFixture } from "./fixtures.js";
-import { createFixture, expectAssertionError } from "./helpers.js";
+import { createFixture } from "./helpers.js";
 
 const networkConnection = await hre.network.connect();
 const loadMatchersFixture = createFixture(
@@ -15,106 +14,160 @@ describe("toBeRevertedWithPanic", () => {
   describe("write", () => {
     it("successful transaction", async () => {
       const { matchers } = await loadMatchersFixture();
-      await expectAssertionError(
-        expect(matchers.write.succeeds()).toBeRevertedWithPanic(),
-        "Expected transaction to be reverted with some panic code, but it didn't revert"
-      );
+      await expect(expect(matchers.write.succeeds()).toBeRevertedWithPanic())
+        .rejects.toThrowErrorMatchingInlineSnapshot(`
+        [AssertionError: 
+        expect(received).toBeRevertedWithPanic()
+
+        Expected: "transaction reverted with some panic code"
+        Received: "no revert"]
+      `);
     });
+
     describe("reverted transaction", () => {
       it("any panic code", async () => {
         const { matchers } = await loadMatchersFixture();
         await expect(matchers.write.panicAssert()).toBeRevertedWithPanic();
       });
+
       it("matching panic code", async () => {
         const { matchers } = await loadMatchersFixture();
         await expect(matchers.write.panicAssert()).toBeRevertedWithPanic(1n);
       });
+
       it("mismatching panic code", async () => {
         const { matchers } = await loadMatchersFixture();
-        await expectAssertionError(
-          expect(matchers.write.panicAssert()).toBeRevertedWithPanic(17n),
-          "Expected transaction to be reverted with panic code 17 (Arithmetic operation resulted in underflow or overflow), but it reverted with panic code 1 (An `assert` condition failed)"
-        );
+        await expect(
+          expect(matchers.write.panicAssert()).toBeRevertedWithPanic(17n)
+        ).rejects.toThrowErrorMatchingInlineSnapshot(`
+          [AssertionError: 
+          expect(received).toBeRevertedWithPanic(17)
+
+          Expected: "transaction reverted with panic code: 17 (Arithmetic operation resulted in underflow or overflow)"
+          Received: "transaction reverted with panic code: 1 (An \`assert\` condition failed)"]
+        `);
       });
+
       it("empty", async () => {
         const { matchers } = await loadMatchersFixture();
-        await expectAssertionError(
-          expect(matchers.write.revertsWithoutReason()).toBeRevertedWithPanic(),
-          "Expected transaction to be reverted with some panic code, but it reverted without a reason"
-        );
+        await expect(
+          expect(matchers.write.revertsWithoutReason()).toBeRevertedWithPanic()
+        ).rejects.toThrowErrorMatchingInlineSnapshot(`
+          [AssertionError: 
+          expect(received).toBeRevertedWithPanic()
+
+          Expected: "transaction reverted with some panic code"
+          Received: "transaction reverted without a reason"]
+        `);
       });
+
       it("unknown custom error", async () => {
         const { matchers } = await loadMatchersFixture();
-        await expectAssertionError(
+        await expect(
           expect(
             matchers.write.revertWithAnotherContractCustomError()
-          ).toBeRevertedWithPanic(),
-          "Expected transaction to be reverted with some panic code, but it reverted with unknown error"
-        );
+          ).toBeRevertedWithPanic()
+        ).rejects.toThrowErrorMatchingInlineSnapshot(`
+          [AssertionError: 
+          expect(received).toBeRevertedWithPanic()
+
+          Expected: "transaction reverted with some panic code"
+          Received: "transaction reverted with unknown error"]
+        `);
       });
+
       it("string error", async () => {
         const { matchers } = await loadMatchersFixture();
-        await expectAssertionError(
+        await expect(
           expect(
             matchers.write.revertsWith(["some reason"])
-          ).toBeRevertedWithPanic(),
-          "Expected transaction to be reverted with some panic code, but it reverted with reason 'some reason'"
-        );
+          ).toBeRevertedWithPanic()
+        ).rejects.toThrowErrorMatchingInlineSnapshot(`
+          [AssertionError: 
+          expect(received).toBeRevertedWithPanic()
+
+          Expected: "transaction reverted with some panic code"
+          Received: "transaction reverted with string: some reason"]
+        `);
       });
+
       it("known custom error", async () => {
         const { matchers } = await loadMatchersFixture();
-        await expectAssertionError(
+        await expect(
           expect(
             matchers.write.revertWithSomeCustomError()
-          ).toBeRevertedWithPanic(),
-          "Expected transaction to be reverted with some panic code, but it reverted with custom error 'SomeCustomError'"
-        );
+          ).toBeRevertedWithPanic()
+        ).rejects.toThrowErrorMatchingInlineSnapshot(`
+          [AssertionError: 
+          expect(received).toBeRevertedWithPanic()
+
+          Expected: "transaction reverted with some panic code"
+          Received: "transaction reverted with error: SomeCustomError()"]
+        `);
       });
     });
+
     describe("negated", () => {
       it("successful transaction", async () => {
         const { matchers } = await loadMatchersFixture();
         await expect(matchers.write.succeeds()).not.toBeRevertedWithPanic();
       });
+
       describe("reverted transaction", () => {
         it("any panic code", async () => {
           const { matchers } = await loadMatchersFixture();
-          await expectAssertionError(
-            expect(matchers.write.panicAssert()).not.toBeRevertedWithPanic(),
-            "Expected transaction NOT to be reverted with some panic code, but it reverted with panic code 1 (An `assert` condition failed)"
-          );
+          await expect(
+            expect(matchers.write.panicAssert()).not.toBeRevertedWithPanic()
+          ).rejects.toThrowErrorMatchingInlineSnapshot(`
+            [AssertionError: 
+            expect(received).not.toBeRevertedWithPanic()
+
+            Expected: "NOT transaction reverted with some panic code"
+            Received: "transaction reverted with panic code: 1 (An \`assert\` condition failed)"]
+          `);
         });
+
         it("matching panic code", async () => {
           const { matchers } = await loadMatchersFixture();
-          await expectAssertionError(
-            expect(matchers.write.panicAssert()).not.toBeRevertedWithPanic(1n),
-            "Expected transaction NOT to be reverted with panic code 1 (An `assert` condition failed), but it was"
-          );
+          await expect(
+            expect(matchers.write.panicAssert()).not.toBeRevertedWithPanic(1n)
+          ).rejects.toThrowErrorMatchingInlineSnapshot(`
+            [AssertionError: 
+            expect(received).not.toBeRevertedWithPanic(1)
+
+            Expected: "NOT transaction reverted with panic code: 1 (An \`assert\` condition failed)"
+            Received: "transaction reverted with panic code: 1 (An \`assert\` condition failed)"]
+          `);
         });
+
         it("mismatching panic code", async () => {
           const { matchers } = await loadMatchersFixture();
           await expect(matchers.write.panicAssert()).not.toBeRevertedWithPanic(
             17n
           );
         });
+
         it("empty", async () => {
           const { matchers } = await loadMatchersFixture();
           await expect(
             matchers.write.revertsWithoutReason()
           ).not.toBeRevertedWithPanic();
         });
+
         it("unknown custom error", async () => {
           const { matchers } = await loadMatchersFixture();
           await expect(
             matchers.write.revertWithAnotherContractCustomError()
           ).not.toBeRevertedWithPanic();
         });
+
         it("string error", async () => {
           const { matchers } = await loadMatchersFixture();
           await expect(
             matchers.write.revertsWith(["some reason"])
           ).not.toBeRevertedWithPanic();
         });
+
         it("known custom error", async () => {
           const { matchers } = await loadMatchersFixture();
           await expect(
@@ -124,113 +177,168 @@ describe("toBeRevertedWithPanic", () => {
       });
     });
   });
+
   describe("read", () => {
     it("successful transaction", async () => {
       const { matchers } = await loadMatchersFixture();
-      await expectAssertionError(
-        expect(matchers.read.succeedsView()).toBeRevertedWithPanic(),
-        "Expected transaction to be reverted with some panic code, but it didn't revert"
-      );
+      await expect(expect(matchers.read.succeedsView()).toBeRevertedWithPanic())
+        .rejects.toThrowErrorMatchingInlineSnapshot(`
+        [AssertionError: 
+        expect(received).toBeRevertedWithPanic()
+
+        Expected: "transaction reverted with some panic code"
+        Received: "no revert"]
+      `);
     });
+
     describe("reverted transaction", () => {
       it("any panic code", async () => {
         const { matchers } = await loadMatchersFixture();
         await expect(matchers.read.panicAssertView()).toBeRevertedWithPanic();
       });
+
       it("matching panic code", async () => {
         const { matchers } = await loadMatchersFixture();
         await expect(matchers.read.panicAssertView()).toBeRevertedWithPanic(1n);
       });
+
       it("mismatching panic code", async () => {
         const { matchers } = await loadMatchersFixture();
-        await expectAssertionError(
-          expect(matchers.read.panicAssertView()).toBeRevertedWithPanic(17n),
-          "Expected transaction to be reverted with panic code 17 (Arithmetic operation resulted in underflow or overflow), but it reverted with panic code 1 (An `assert` condition failed)"
-        );
+        await expect(
+          expect(matchers.read.panicAssertView()).toBeRevertedWithPanic(17n)
+        ).rejects.toThrowErrorMatchingInlineSnapshot(`
+          [AssertionError: 
+          expect(received).toBeRevertedWithPanic(17)
+
+          Expected: "transaction reverted with panic code: 17 (Arithmetic operation resulted in underflow or overflow)"
+          Received: "transaction reverted with panic code: 1 (An \`assert\` condition failed)"]
+        `);
       });
+
       it("empty", async () => {
         const { matchers } = await loadMatchersFixture();
-        await expectAssertionError(
+        await expect(
           expect(
             matchers.read.revertsWithoutReasonView()
-          ).toBeRevertedWithPanic(),
-          "Expected transaction to be reverted with some panic code, but it reverted without a reason"
-        );
+          ).toBeRevertedWithPanic()
+        ).rejects.toThrowErrorMatchingInlineSnapshot(`
+          [AssertionError: 
+          expect(received).toBeRevertedWithPanic()
+
+          Expected: "transaction reverted with some panic code"
+          Received: "transaction reverted without a reason"]
+        `);
       });
+
       it("unknown custom error", async () => {
         const { matchers } = await loadMatchersFixture();
-        await expectAssertionError(
+        await expect(
           expect(
             matchers.read.revertWithAnotherContractCustomErrorView()
-          ).toBeRevertedWithPanic(),
-          "Expected transaction to be reverted with some panic code, but it reverted with unknown error"
-        );
+          ).toBeRevertedWithPanic()
+        ).rejects.toThrowErrorMatchingInlineSnapshot(`
+          [AssertionError: 
+          expect(received).toBeRevertedWithPanic()
+
+          Expected: "transaction reverted with some panic code"
+          Received: "transaction reverted with unknown error"]
+        `);
       });
+
       it("string error", async () => {
         const { matchers } = await loadMatchersFixture();
-        await expectAssertionError(
+        await expect(
           expect(
             matchers.read.revertsWithView(["some reason"])
-          ).toBeRevertedWithPanic(),
-          "Expected transaction to be reverted with some panic code, but it reverted with reason 'some reason'"
-        );
+          ).toBeRevertedWithPanic()
+        ).rejects.toThrowErrorMatchingInlineSnapshot(`
+          [AssertionError: 
+          expect(received).toBeRevertedWithPanic()
+
+          Expected: "transaction reverted with some panic code"
+          Received: "transaction reverted with string: some reason"]
+        `);
       });
+
       it("known custom error", async () => {
         const { matchers } = await loadMatchersFixture();
-        await expectAssertionError(
+        await expect(
           expect(
             matchers.read.revertWithSomeCustomErrorView()
-          ).toBeRevertedWithPanic(),
-          "Expected transaction to be reverted with some panic code, but it reverted with custom error 'SomeCustomError'"
-        );
+          ).toBeRevertedWithPanic()
+        ).rejects.toThrowErrorMatchingInlineSnapshot(`
+          [AssertionError: 
+          expect(received).toBeRevertedWithPanic()
+
+          Expected: "transaction reverted with some panic code"
+          Received: "transaction reverted with error: SomeCustomError()"]
+        `);
       });
     });
+
     describe("negated", () => {
       it("successful transaction", async () => {
         const { matchers } = await loadMatchersFixture();
         await expect(matchers.read.succeedsView()).not.toBeRevertedWithPanic();
       });
+
       describe("reverted transaction", () => {
         it("any panic code", async () => {
           const { matchers } = await loadMatchersFixture();
-          await expectAssertionError(
-            expect(matchers.read.panicAssertView()).not.toBeRevertedWithPanic(),
-            "Expected transaction NOT to be reverted with some panic code, but it reverted with panic code 1 (An `assert` condition failed)"
-          );
+          await expect(
+            expect(matchers.read.panicAssertView()).not.toBeRevertedWithPanic()
+          ).rejects.toThrowErrorMatchingInlineSnapshot(`
+            [AssertionError: 
+            expect(received).not.toBeRevertedWithPanic()
+
+            Expected: "NOT transaction reverted with some panic code"
+            Received: "transaction reverted with panic code: 1 (An \`assert\` condition failed)"]
+          `);
         });
+
         it("matching panic code", async () => {
           const { matchers } = await loadMatchersFixture();
-          await expectAssertionError(
+          await expect(
             expect(matchers.read.panicAssertView()).not.toBeRevertedWithPanic(
               1n
-            ),
-            "Expected transaction NOT to be reverted with panic code 1 (An `assert` condition failed), but it was"
-          );
+            )
+          ).rejects.toThrowErrorMatchingInlineSnapshot(`
+            [AssertionError: 
+            expect(received).not.toBeRevertedWithPanic(1)
+
+            Expected: "NOT transaction reverted with panic code: 1 (An \`assert\` condition failed)"
+            Received: "transaction reverted with panic code: 1 (An \`assert\` condition failed)"]
+          `);
         });
+
         it("mismatching panic code", async () => {
           const { matchers } = await loadMatchersFixture();
           await expect(
             matchers.read.panicAssertView()
           ).not.toBeRevertedWithPanic(17n);
         });
+
         it("empty", async () => {
           const { matchers } = await loadMatchersFixture();
           await expect(
             matchers.read.revertsWithoutReasonView()
           ).not.toBeRevertedWithPanic();
         });
+
         it("unknown custom error", async () => {
           const { matchers } = await loadMatchersFixture();
           await expect(
             matchers.read.revertWithAnotherContractCustomErrorView()
           ).not.toBeRevertedWithPanic();
         });
+
         it("string error", async () => {
           const { matchers } = await loadMatchersFixture();
           await expect(
             matchers.read.revertsWithView(["some reason"])
           ).not.toBeRevertedWithPanic();
         });
+
         it("known custom error", async () => {
           const { matchers } = await loadMatchersFixture();
           await expect(

@@ -1,6 +1,5 @@
-import { expect } from "chai";
 import hre from "hardhat";
-import { describe, it } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import type { PublicClient } from "@nomicfoundation/hardhat-viem/types";
 import { createDeployMatchersFixture } from "./fixtures.js";
@@ -63,5 +62,16 @@ describe("standard", () => {
     );
     doError = true;
     await expect(contract.read.succeedsView()).rejects.toThrowError("test");
+  });
+
+  it("should allow toBeRevertedWithCustomErrorFrom to be used with a contract", async () => {
+    const { matchers } = await loadMatchersFixture();
+    const anotherContract = await networkConnection.viem.getContractAt(
+      "AnotherMatchersContract",
+      await matchers.read.anotherContract()
+    );
+    await expect(
+      matchers.write.revertWithAnotherContractCustomError()
+    ).toBeRevertedWithCustomErrorFrom(anotherContract, "YetAnotherCustomError");
   });
 });

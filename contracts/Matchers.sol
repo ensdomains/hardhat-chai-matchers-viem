@@ -7,7 +7,7 @@ contract Matchers {
 
     event SomeEvent();
 
-    AnotherMatchersContract anotherContract;
+    AnotherMatchersContract public anotherContract;
 
     struct Pair {
         uint a;

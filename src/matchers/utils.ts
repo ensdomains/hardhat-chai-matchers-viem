@@ -57,12 +57,13 @@ export const setReadResult = (
   value: unknown
 ) => setFlag<unknown>(assertion, "readResult", value);
 
-export const getWithArgs = (assertion: Chai.AssertionStatic) =>
-  getFlag<unknown[], undefined>(assertion, "withArgs");
+export const getWithArgs = <T = unknown[] | Record<string, unknown>>(
+  assertion: Chai.AssertionStatic
+) => getFlag<T, undefined>(assertion, "withArgs");
 export const setWithArgs = (
   assertion: Chai.AssertionStatic,
-  value: unknown[]
-) => setFlag<unknown[]>(assertion, "withArgs", value);
+  value: unknown[] | Record<string, unknown>
+) => setFlag<unknown[] | Record<string, unknown>>(assertion, "withArgs", value);
 
 const getPreviousMatcherName = (assertion: Chai.AssertionStatic) =>
   getFlag<string, undefined>(assertion, PREVIOUS_MATCHER_NAME);

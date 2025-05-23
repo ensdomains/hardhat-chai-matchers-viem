@@ -2,6 +2,8 @@ export const PREVIOUS_MATCHER_NAME = "previousMatcherName" as const;
 export const TO_BE_REVERTED_MATCHER = "toBeReverted" as const;
 export const TO_BE_REVERTED_WITH_CUSTOM_ERROR_MATCHER =
   "toBeRevertedWithCustomError" as const;
+export const TO_BE_REVERTED_WITH_CUSTOM_ERROR_FROM_MATCHER =
+  "toBeRevertedWithCustomErrorFrom" as const;
 export const TO_BE_REVERTED_WITHOUT_REASON_MATCHER =
   "toBeRevertedWithoutReason" as const;
 export const TO_BE_REVERTED_WITH_PANIC_MATCHER =

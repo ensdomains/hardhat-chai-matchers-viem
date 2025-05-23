@@ -19,19 +19,15 @@ export function createDeployEventsFixture(
   networkConnection: NetworkConnection<DefaultChainType>
 ) {
   return async function eventsFixture() {
-    const anotherContract = await networkConnection.viem.deployContract(
-      "AnotherContract",
+    const anotherEventsContract = await networkConnection.viem.deployContract(
+      "AnotherEventsContract",
       []
     );
     const events = await networkConnection.viem.deployContract("Events", [
-      anotherContract.address,
+      anotherEventsContract.address,
     ]);
-    const matchers = await networkConnection.viem.deployContract(
-      "Matchers",
-      []
-    );
 
-    return { anotherContract, events, matchers };
+    return { anotherEventsContract, events };
   };
 }
 

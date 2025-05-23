@@ -1,5 +1,3 @@
-import { AssertionError } from "chai";
-
 // just a generic function type to avoid errors from the ban-types eslint rule
 export type Ssfi = (...args: any[]) => any;
 
@@ -19,38 +17,50 @@ export type Ssfi = (...args: any[]) => any;
  * the best way to use this value, so this needs some trial-and-error. Use the
  * existing matchers for a reference of something that works well enough.
  */
-export function buildAssert(negated: boolean, ssfi: Ssfi) {
+export function buildAssert(
+  chai: Chai.ChaiStatic,
+  negated: boolean,
+  ssfi: Ssfi
+) {
   return function ({
     condition,
     messageFalse,
     messageTrue,
+    solidityStack,
   }: {
     condition: boolean;
     messageFalse?: string | (() => string);
     messageTrue?: string | (() => string);
+    solidityStack?: string;
   }) {
     if (!negated && !condition) {
-      if (messageFalse === undefined) {
+      if (messageFalse === undefined)
         throw new Error(
           "Assertion doesn't have an error message. Please open an issue to report this."
         );
-      }
 
       const message =
         typeof messageFalse === "function" ? messageFalse() : messageFalse;
-      throw new AssertionError(message, undefined, ssfi);
+      throw new chai.AssertionError(
+        message,
+        { __solidityStack: solidityStack },
+        ssfi
+      );
     }
 
     if (negated && condition) {
-      if (messageTrue === undefined) {
+      if (messageTrue === undefined)
         throw new Error(
           "Assertion doesn't have an error message. Please open an issue to report this."
         );
-      }
 
       const message =
         typeof messageTrue === "function" ? messageTrue() : messageTrue;
-      throw new AssertionError(message, undefined, ssfi);
+      throw new chai.AssertionError(
+        message,
+        { __solidityStack: solidityStack },
+        ssfi
+      );
     }
   };
 }
