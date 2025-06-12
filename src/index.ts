@@ -20,3 +20,5 @@ const hardhatChaiMatchersViemPlugin: HardhatPlugin = {
 };
 
 export default hardhatChaiMatchersViemPlugin;
+
+export * from "./types.js";

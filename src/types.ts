@@ -1,6 +1,9 @@
 import "vitest";
 
-import type { GetContractReturnType } from "@nomicfoundation/hardhat-viem/types";
+import type {
+  ContractAbis,
+  GetContractReturnType,
+} from "@nomicfoundation/hardhat-viem/types";
 import type {
   AbiError,
   AbiEvent,
@@ -20,18 +23,10 @@ import type {
 } from "viem";
 import type { panicReasons } from "./constants.js";
 
-interface Constructable<T> {
-  new (...args: any[]): T;
-}
-
 export type AnyArtifact<abi extends Abi = Abi> = {
   abi: abi;
   bytecode: Hex;
 };
-
-type ExtendsOrNever<TCompare, TBase, TFunc> = TCompare extends TBase
-  ? TFunc
-  : never;
 
 type ContractEventArgs<abiEvent extends AbiEvent = AbiEvent> =
   AbiEventParametersToPrimitiveTypes<
@@ -76,13 +71,6 @@ export interface WriteCallAssertion<
 > extends RevertAssertion<abi>,
     EmitEventAssertion<abi> {
   not: isNegated extends true ? never : WriteCallAssertion<abi, true>;
-}
-
-interface TransactionHashAssertion<
-  abi extends Abi | readonly unknown[],
-  isNegated extends boolean = false
-> extends EmitEventAssertion<abi> {
-  not: isNegated extends true ? never : TransactionHashAssertion<abi, true>;
 }
 
 type ToBigInt<TNumber extends number> =
@@ -248,3 +236,8 @@ export type ContractReturnType<
         };
       }
     : unknown);
+
+export type NamedContractReturnType<
+  name extends keyof ContractAbis,
+  abi extends ContractAbis[name] = ContractAbis[name]
+> = ContractReturnType<abi>;
