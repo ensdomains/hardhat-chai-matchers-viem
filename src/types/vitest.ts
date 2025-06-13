@@ -1,5 +1,4 @@
 import type { Abi, Address } from "viem";
-import type { Assertion } from "vitest";
 import type {
   PromiseWithCallMetadata,
   ReadCallAssertion,
