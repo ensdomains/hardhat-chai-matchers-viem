@@ -7,6 +7,8 @@ import type {
 
 type ExtendsOrNever<TCompare, TBase, TFunc> = TCompare extends TBase
   ? TFunc
+  : Awaited<TCompare> extends TBase
+  ? TFunc
   : never;
 
 interface AddressMatcher<T = unknown> {
