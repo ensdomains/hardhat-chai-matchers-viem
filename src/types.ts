@@ -17,8 +17,11 @@ import type {
   Abi,
   AbiEventParametersToPrimitiveTypes,
   Address,
+  Chain,
   Hex,
   PublicClient,
+  SendTransactionParameters,
+  SendTransactionReturnType,
   WriteContractReturnType,
 } from "viem";
 import type { panicReasons } from "./constants.js";
@@ -143,7 +146,7 @@ export type PromiseWithCallMetadata<
   T,
   TFunctionName extends string,
   TArgs extends unknown[],
-  TKind extends "write" | "read",
+  TKind extends "write" | "read" | "arbitrary",
   TAbi extends Abi | readonly unknown[],
   TAddress extends Address
 > = Promise<T> & {
@@ -235,7 +238,18 @@ export type ContractReturnType<
           >;
         };
       }
-    : unknown);
+    : unknown) & {
+    arbitrary: (
+      parameters: SendTransactionParameters<Chain>
+    ) => PromiseWithCallMetadata<
+      SendTransactionReturnType,
+      ".arbitrary",
+      [SendTransactionParameters],
+      "arbitrary",
+      _GetContractReturnType["abi"],
+      _GetContractReturnType["address"]
+    >;
+  };
 
 export type NamedContractReturnType<
   name extends keyof ContractAbis,

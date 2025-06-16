@@ -1,6 +1,8 @@
 import type { HookContext, NetworkHooks } from "hardhat/types/hooks";
 import type { ChainType, NetworkConnection } from "hardhat/types/network";
 
+import type { Chain, SendTransactionParameters } from "viem";
+import { sendTransaction } from "viem/actions";
 import { deployCustomContract } from "../../utils/deployCustomContract.js";
 import { addChaiMatchers } from "../addChaiMatchers.js";
 
@@ -71,6 +73,18 @@ export default async (): Promise<Partial<NetworkHooks>> => {
           const originalRead = result.read;
           result.read = createMetadataProxy(originalRead, "read");
         }
+        result.arbitrary = (args: SendTransactionParameters<Chain>) => {
+          const resultPromise = sendTransaction(publicClient, args) as any;
+          resultPromise.__call_metadata = {
+            functionName: ".arbitrary",
+            args,
+            client: publicClient,
+            kind: "arbitrary",
+            abi: result.abi,
+            address: result.address,
+          };
+          return resultPromise;
+        };
 
         result.client = publicClient;
 

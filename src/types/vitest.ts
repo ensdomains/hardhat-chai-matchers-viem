@@ -22,7 +22,7 @@ declare module "vitest" {
       const TResult,
       const TFunctionName extends string,
       const TArgs extends unknown[],
-      const TKind extends "write" | "read",
+      const TKind extends "write" | "read" | "arbitrary",
       const TAbi extends Abi | readonly unknown[],
       const TAddress extends Address
     >(
@@ -36,7 +36,11 @@ declare module "vitest" {
       >
     ): (TKind extends "write"
       ? WriteCallAssertion<TAbi>
-      : ReadCallAssertion<TAbi>) &
+      : TKind extends "read"
+      ? ReadCallAssertion<TAbi>
+      : TKind extends "arbitrary"
+      ? WriteCallAssertion<TAbi>
+      : {}) &
       Assertion<
         PromiseWithCallMetadata<
           TResult,

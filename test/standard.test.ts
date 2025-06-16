@@ -74,4 +74,16 @@ describe("standard", () => {
       matchers.write.revertWithAnotherContractCustomError()
     ).toBeRevertedWithCustomErrorFrom(anotherContract, "YetAnotherCustomError");
   });
+
+  it("should allow arbitrary to be used with a contract", async () => {
+    const { matchers } = await loadMatchersFixture();
+    const [walletClient] = await networkConnection.viem.getWalletClients();
+    await expect(
+      matchers.arbitrary({
+        to: matchers.address,
+        data: "0x",
+        account: walletClient.account,
+      })
+    ).toBeRevertedWithoutReason();
+  });
 });
