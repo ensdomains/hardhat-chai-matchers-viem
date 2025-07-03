@@ -2,7 +2,6 @@
 // Copyright (c) 2016-2020 zOS Global Limited
 
 import type { GetContractReturnType } from "@nomicfoundation/hardhat-viem/types";
-import hre from "hardhat";
 import type { ArtifactMap } from "hardhat/types/artifacts";
 import type {
   ChainType,
@@ -17,7 +16,7 @@ import {
   type Abi,
   type Address,
 } from "viem";
-import { beforeAll, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import {
   createInterfaceId,
@@ -53,24 +52,21 @@ export const shouldSupportInterfaces = <
     read: {
       supportsInterface: SupportsInterfaceContract["read"]["supportsInterface"];
     };
-  }
+  },
+  TChainType extends ChainType | string = DefaultChainType
 >({
   contract,
   interfaces,
+  connection,
 }: {
-  contract: <TChainType extends ChainType | string = DefaultChainType>(
-    networkConnection: NetworkConnection<TChainType>
-  ) => TContract | Promise<TContract>;
+  contract: () => TContract | Promise<TContract>;
   interfaces: (keyof ArtifactMap)[];
+  connection: NetworkConnection<TChainType>;
 }) => {
-  let deployedContract: TContract;
+  describe("Contract interface", async function () {
+    const deployedContract = await contract();
+    const publicClient = await connection.viem.getPublicClient();
 
-  beforeAll(async () => {
-    const networkConnection = await hre.network.connect();
-    deployedContract = await contract(networkConnection);
-  });
-
-  describe("Contract interface", function () {
     for (const interfaceName of interfaces) {
       describe(interfaceName, async () => {
         const interfaceAbi = await getSolidityReferenceInterfaceAbi(
@@ -90,9 +86,6 @@ export const shouldSupportInterfaces = <
 
         describe("ERC165's supportsInterface(bytes4)", () => {
           it("uses less than 30k gas [skip-on-coverage]", async () => {
-            const networkConnection = await hre.network.connect();
-            const publicClient = await networkConnection.viem.getPublicClient();
-
             await expect(
               publicClient.estimateGas({
                 to: deployedContract.address,

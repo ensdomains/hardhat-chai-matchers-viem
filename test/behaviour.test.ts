@@ -15,5 +15,6 @@ describe("Behaviour", () => {
   shouldSupportInterfaces({
     contract: () => loadBehaviourFixture().then(({ behaviour }) => behaviour),
     interfaces: ["IBehaviour", "IBehaviourOther"],
+    connection: networkConnection,
   });
 });
