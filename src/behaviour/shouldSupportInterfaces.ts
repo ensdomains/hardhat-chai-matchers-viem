@@ -3,11 +3,6 @@
 
 import type { GetContractReturnType } from "@nomicfoundation/hardhat-viem/types";
 import type { ArtifactMap } from "hardhat/types/artifacts";
-import type {
-  ChainType,
-  DefaultChainType,
-  NetworkConnection,
-} from "hardhat/types/network";
 import {
   encodeFunctionData,
   getAbiItem,
@@ -15,8 +10,9 @@ import {
   toFunctionSignature,
   type Abi,
   type Address,
+  type PublicClient,
 } from "viem";
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 
 import {
   createInterfaceId,
@@ -49,23 +45,24 @@ export const shouldSupportInterfaces = <
   TContract extends {
     abi: Abi;
     address: Address;
+    client: PublicClient;
     read: {
       supportsInterface: SupportsInterfaceContract["read"]["supportsInterface"];
     };
-  },
-  TChainType extends ChainType | string = DefaultChainType
+  }
 >({
   contract,
   interfaces,
-  connection,
 }: {
   contract: () => TContract | Promise<TContract>;
   interfaces: (keyof ArtifactMap)[];
-  connection: NetworkConnection<TChainType>;
 }) => {
   describe("Contract interface", async function () {
-    const deployedContract = await contract();
-    const publicClient = await connection.viem.getPublicClient();
+    let deployedContract: TContract;
+
+    beforeAll(async () => {
+      deployedContract = await contract();
+    });
 
     for (const interfaceName of interfaces) {
       describe(interfaceName, async () => {
@@ -87,7 +84,7 @@ export const shouldSupportInterfaces = <
         describe("ERC165's supportsInterface(bytes4)", () => {
           it("uses less than 30k gas [skip-on-coverage]", async () => {
             await expect(
-              publicClient.estimateGas({
+              deployedContract.client.estimateGas({
                 to: deployedContract.address,
                 data: encodeFunctionData({
                   abi: deployedContract.abi,
