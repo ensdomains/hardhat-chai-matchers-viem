@@ -47,20 +47,19 @@
     "test": "NODE_OPTIONS=\"--disable-warning=ExperimentalWarning\" vitest"
   },
   "devDependencies": {
-    "@nomicfoundation/hardhat-network-helpers": "next",
-    "@nomicfoundation/hardhat-node-test-runner": "^3.0.0-next.6",
-    "@nomicfoundation/hardhat-viem": "next",
+    "@nomicfoundation/hardhat-network-helpers": "^3.0.0-next.20",
+    "@nomicfoundation/hardhat-viem": "^3.0.0-next.20",
     "@openzeppelin/contracts": "^5.0.2",
     "@types/bun": "latest",
-    "hardhat": "3.0.0-next.8",
+    "hardhat": "3.0.0-next.20",
     "ts-node": "^10.9.2",
     "typescript": "^5.4.5",
     "viem": "^2.28.1",
     "vitest": "^3.1.2"
   },
   "peerDependencies": {
-    "@nomicfoundation/hardhat-viem": "^3.0.0-next.8",
-    "hardhat": "^3.0.0-next.8",
+    "@nomicfoundation/hardhat-viem": "^3.0.0-next.20",
+    "hardhat": "^3.0.0-next.20",
     "viem": "^2.28.1",
     "vitest": "^3.1.2"
   }

@@ -106,19 +106,20 @@ export const getSolidityReferenceInterfaceAbi = async (
   if (!fullyQualifiedInterfaceName)
     throw new Error("Couldn't find fully qualified interface name");
 
-  const buildInfoId = await hre.artifacts.getBuildInfoId(
+  const { buildInfoId, inputSourceName } = await hre.artifacts.readArtifact(
     fullyQualifiedInterfaceName
   );
   if (!buildInfoId) throw new Error("Couldn't find build info for interface");
+  if (!inputSourceName)
+    throw new Error("Couldn't find input source name for interface");
 
   const buildInfoPath = await hre.artifacts.getBuildInfoPath(buildInfoId);
   if (!buildInfoPath)
     throw new Error("Couldn't find build info path for interface");
 
   const buildInfo = await readJsonFile<BuildInfo>(buildInfoPath);
-
-  const [path, interfaceName] = fullyQualifiedInterfaceName.split(":");
-  const { content } = buildInfo.input.sources[path];
+  const { content } = buildInfo.input.sources[inputSourceName];
+  const interfaceName = fullyQualifiedInterfaceName.split(":")[1];
 
   return (
     content
