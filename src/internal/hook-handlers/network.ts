@@ -7,6 +7,8 @@ import { deployCustomContract } from "../../utils/deployCustomContract.js";
 import { addChaiMatchers } from "../addChaiMatchers.js";
 
 let isInitialized = false;
+// @ts-expect-error - __vitest_worker__ is not typed
+const isVitestEnvironment = () => globalThis["__vitest_worker__"] !== undefined;
 
 export default async (): Promise<Partial<NetworkHooks>> => {
   const handlers: Partial<NetworkHooks> = {
@@ -14,7 +16,7 @@ export default async (): Promise<Partial<NetworkHooks>> => {
       context: HookContext,
       next: (context: HookContext) => Promise<NetworkConnection<ChainTypeT>>
     ) {
-      if (!isInitialized) {
+      if (!isInitialized && isVitestEnvironment()) {
         addChaiMatchers();
         isInitialized = true;
       }
