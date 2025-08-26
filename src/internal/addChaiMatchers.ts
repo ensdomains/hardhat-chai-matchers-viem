@@ -1,7 +1,6 @@
-import { chai } from "vitest";
-
 import { hardhatChaiMatchers } from "../matchers.js";
 
-export function addChaiMatchers() {
+export async function addChaiMatchers() {
+  const { chai } = await import("vitest");
   chai.use(hardhatChaiMatchers);
 }

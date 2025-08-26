@@ -17,7 +17,7 @@ export default async (): Promise<Partial<NetworkHooks>> => {
       next: (context: HookContext) => Promise<NetworkConnection<ChainTypeT>>
     ) {
       if (!isInitialized && isVitestEnvironment()) {
-        addChaiMatchers();
+        await addChaiMatchers();
         isInitialized = true;
       }
 

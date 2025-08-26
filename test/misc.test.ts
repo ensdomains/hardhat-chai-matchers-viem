@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { addChaiMatchers } from "../src/internal/addChaiMatchers.js";
 
-addChaiMatchers();
+await addChaiMatchers();
 
 describe("misc", () => {
   describe("toEqualAddress", () => {

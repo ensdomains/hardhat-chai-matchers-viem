@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import { addChaiMatchers } from "../src/internal/addChaiMatchers.js";
 import { getSolidityReferenceInterfaceAbi } from "../src/utils/createInterfaceId.js";
 
-addChaiMatchers();
+await addChaiMatchers();
 
 describe("getSolidityReferenceInterfaceAbi", () => {
   const interfaceName = "IBehaviour" satisfies keyof ArtifactMap;
