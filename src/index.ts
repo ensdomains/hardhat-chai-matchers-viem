@@ -6,17 +6,10 @@ import "./types/vitest.js";
 const hardhatChaiMatchersViemPlugin: HardhatPlugin = {
   id: "hardhat-chai-matchers-viem",
   hookHandlers: {
-    network: import.meta.resolve("./internal/hook-handlers/network.js"),
+    network: async () => import("./internal/hook-handlers/network.js"),
   },
   npmPackage: "@ensdomains/hardhat-chai-matchers-viem",
-  dependencies: [
-    async () => {
-      const { default: hardhatViemPlugin } = await import(
-        "@nomicfoundation/hardhat-viem"
-      );
-      return hardhatViemPlugin;
-    },
-  ],
+  dependencies: () => [import("@nomicfoundation/hardhat-viem")],
 };
 
 export default hardhatChaiMatchersViemPlugin;

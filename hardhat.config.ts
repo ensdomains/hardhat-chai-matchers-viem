@@ -2,7 +2,6 @@ import type { HardhatUserConfig } from "hardhat/config";
 
 import hardhatChaiMatchersViemPlugin from "@ensdomains/hardhat-chai-matchers-viem";
 import networkHelpersPlugin from "@nomicfoundation/hardhat-network-helpers";
-import nodeTestPlugin from "@nomicfoundation/hardhat-node-test-runner";
 import hardhatViemPlugin from "@nomicfoundation/hardhat-viem";
 
 const config = {
@@ -17,7 +16,7 @@ const config = {
   networks: {
     hardhat: {
       chainId: Number(process.env.CHAIN_ID ?? "31337"),
-      type: "edr",
+      type: "edr-simulated",
     },
     localhost: {
       url: `http://127.0.0.1:${process.env.HARDHAT_NODE_PORT ?? "8545"}`,
@@ -25,7 +24,6 @@ const config = {
     },
   },
   plugins: [
-    nodeTestPlugin,
     hardhatViemPlugin,
     networkHelpersPlugin,
     hardhatChaiMatchersViemPlugin,

@@ -10,7 +10,7 @@ let isInitialized = false;
 // @ts-expect-error - __vitest_worker__ is not typed
 const isVitestEnvironment = () => globalThis["__vitest_worker__"] !== undefined;
 
-export default async (): Promise<Partial<NetworkHooks>> => {
+async function networkHookHandler(): Promise<Partial<NetworkHooks>> {
   const handlers: Partial<NetworkHooks> = {
     async newConnection<ChainTypeT extends ChainType | string>(
       context: HookContext,
@@ -106,4 +106,6 @@ export default async (): Promise<Partial<NetworkHooks>> => {
   };
 
   return handlers;
-};
+}
+
+export default networkHookHandler;
