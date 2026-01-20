@@ -70,4 +70,40 @@ describe("getSolidityReferenceInterfaceAbi", () => {
       'HHE1000: Artifact for contract "NonExistentInterface" not found.'
     );
   });
+
+  it('should work with structs defined in the interface', async () => {
+    const abi = await getSolidityReferenceInterfaceAbi(
+      "contracts/ISomethingWithStruct.sol:ISomethingWithStruct"
+    );
+    expect(abi).toMatchInlineSnapshot(`
+      [
+        {
+          "inputs": [
+            {
+              "components": [
+                {
+                  "internalType": "uint256",
+                  "name": "id",
+                  "type": "uint256",
+                },
+              ],
+              "internalType": "struct ISomethingWithStruct.AStruct",
+              "name": "aStruct",
+              "type": "tuple",
+            },
+          ],
+          "name": "something",
+          "outputs": [
+            {
+              "internalType": "string",
+              "name": "",
+              "type": "string",
+            },
+          ],
+          "stateMutability": "pure",
+          "type": "function",
+        },
+      ]
+    `)
+  });
 });

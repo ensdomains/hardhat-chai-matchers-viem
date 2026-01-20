@@ -126,7 +126,7 @@ export const getSolidityReferenceInterfaceAbi = async (
       // Remove comments - single and multi-line
       .replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm, "")
       // Match only the interface block + nested curly braces
-      .match(`interface ${interfaceName} .*?{(?:\{??[^{]*?})+`)![0]
+      .match(`interface ${interfaceName} .*?{(?:\{??[^]*?})+`)![0]
       // Remove the interface keyword and the interface name
       .replace(/.*{/s, "")
       // Remove the closing curly brace
